@@ -1,0 +1,9 @@
+CSV:
+http://real-chart.finance.yahoo.com/table.csv?s=ERIC&a=08&b=28&c=1989&d=11&e=23&f=2015
+
+
+HTML:
+http://finance.yahoo.com/q/hp?s=ERIC&a=08&b=28&c=1989&d=11&e=23&f=2015&g=d
+http://finance.yahoo.com/q/hp?s=ERIC&a=08&b=28&c=1989&d=11&e=23&f=2015&g=d&z=66&y=66
+
+

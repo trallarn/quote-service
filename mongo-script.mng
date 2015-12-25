@@ -1,0 +1,3 @@
+use quotesDaily;
+
+db.quotesDaily.createIndex({symbol:1,date:1},{unique:true});
