@@ -21,6 +21,15 @@ var connectToDb = function(callback) {
 module.exports = function() {
 
     return {
+        connect: function(callback) {
+            this.getEquityDb(callback || function() { console.log('connected to equity db'); });
+        },
+
+        getEquityDbSync: function() {
+            assert(db, 'call connect before fetching db');
+            return db;
+        },
+
         getEquityDb: function(callback) {
             if(!db) {
                 connectToDb(callback);
