@@ -2,7 +2,9 @@ var request = require("request");
 var csv = require('csv');
 var _ = require('underscore');
 
-module.exports = function() {
+module.exports = QuoteFetcher;
+
+function QuoteFetcher () {
 
     var url = 'http://real-chart.finance.yahoo.com/table.csv?s={symbol}&a={fm}&b={fd}&c={fy}&d={tm}&e={td}&f={ty}';
 
