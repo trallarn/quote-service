@@ -1,0 +1,34 @@
+KURSER
+dokumentation yahoo quotes:
+http://www.jarloo.com/yahoo_finance/
+
+template quotes, inkl bolagsvärden
+http://download.finance.yahoo.com/d/quotes.csv?s=%5EOMXSPI&f=sl1d1t1c1ohgv&e=.csv
+
+template kurshistorik:
+http://real-chart.finance.yahoo.com/table.csv?s=%5EOMXSPI&d=4&e=31&f=2016&g=d&a=2&b=5&c=2013&ignore=.csv
+
+hämta flera quotes åt gången med plus:
+http://download.finance.yahoo.com/d/quotes.csv?s=SEK=X+ERIC-B.ST&f=sl1d1t1c1ohgvxn&e=.csv
+
+det finns npm-modul för kursdata från yahoo:
+https://www.npmjs.com/package/yahoo-finance
+
+LISTOR
+scrapa listor från html
+http://finance.yahoo.com/q/cp?s=%5EOMXSPI&c=1
+http://finance.yahoo.com/q/cp?s=%5EOMX&c=1
+
+går att scrapa från nasdaq omx också men kanske klokare använda yahoo:
+http://www.nasdaqomxnordic.com/shares/listed-companies/stockholm
+
+finns html-parser exvis:
+https://github.com/cheeriojs/cheerio
+
+SYMBOLER
+valutor:
+USDSEK=X
+
+index:
+^DJI down jones industrial average
+^OMXSPI
