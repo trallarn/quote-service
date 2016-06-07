@@ -1,9 +1,9 @@
+var MongoClient = require('mongodb').MongoClient
+  , assert = require('assert');
 var db = false;
 
 var connectToDb = function(callback) {
 
-    var MongoClient = require('mongodb').MongoClient
-      , assert = require('assert');
 
     // Connection URL
     var url = 'mongodb://localhost:27017/equity';

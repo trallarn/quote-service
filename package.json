@@ -4,6 +4,7 @@
   "description": "",
   "main": "src/QuoteFetcher.js",
   "dependencies": {
+    "cheerio": "^0.20.0",
     "csv": "^0.4.6",
     "express": "^4.13.4",
     "mongodb": "^2.1.2",
@@ -15,7 +16,7 @@
     "tape": "^4.5.1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "tape tests/**/*.js",
     "start": "node_modules/nodemon/bin/nodemon.js src/server.js localhost 3000"
   },
   "author": "",
