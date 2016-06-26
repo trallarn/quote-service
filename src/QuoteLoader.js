@@ -2,10 +2,9 @@ var assert = require('assert');
 
 module.exports = QuoteLoader;
 
-//var symbol = 'ERIC';
-//var from = Date(2015, 11 ,1);
-//var to = Date(2016, 5 ,1);
-
+/**
+ * Fetches quotes from sink and saves to db.
+ */
 function QuoteLoader(conf) {
     assert(conf.quoteRepository);
     assert(conf.quoteFetcher);
@@ -16,23 +15,23 @@ function QuoteLoader(conf) {
 
 QuoteLoader.prototype = {
 
-    fetchDaily: function(symbol, from, to, callback) {
+    /**
+     * Fetches historical quotes and saves them to repository.
+     * @param symbols [symbol]
+     */
+    fetchDaily: function(symbols, from, to, callback) {
 
-        console.log('Fetching data for ' + symbol + ' from ' + from.toString() + ' to ' + to.toString());
+        this.quoteFetcher.fetchData(symbols, from.getFullYear(), from.getMonth() + 1, from.getDate(), to.getFullYear(), to.getMonth() + 1, to.getDate(), function(data) {
 
-        this.quoteFetcher.fetchData(symbol, from.getFullYear(), from.getMonth(), from.getDate(), to.getFullYear(), to.getMonth(), to.getDate(), function(data) {
-
-            //console.dir(arguments);
+            //console.dir(data);
 
             if(!data) {
                 throw 'Data is empty';
             }
                 
-            this.quoteRepository.saveQuotes(data, function(){
-                console.log('saved quotes for ' + symbol);
-                //mongoFactory.closeEquityDb();  client is responsible
-                
-                callback();
+            this.quoteRepository.saveQuotes(data, function(quotes){
+                console.log('saved quotes for ' + symbols);
+                callback(quotes);
             });
              
         }.bind(this));

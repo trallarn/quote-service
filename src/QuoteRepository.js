@@ -1,4 +1,5 @@
 var fs = require('fs');
+var _ = require('underscore');
 
 module.exports = QuoteRepository;
 
@@ -40,18 +41,36 @@ QuoteRepository.prototype = {
         });
     },
 
-    // DOES NOT WORK. Must usee asYNC
-    get: function(symbol, from, to) {
-        var query = this._buildQuery(symbol, from, to);
-        console.log('get query: ' + JSON.stringify(query));
-        return  this.mongoFactory.getEquityDbSync().collection('quotesDaily').find(query).toArray();
+    /**
+     * Saves daily quotes.
+     * @param quotes <object|[quote]> from yahoo-finance
+     */
+    saveDaily: function(quotes, callback) {
+        var flatQuotes;
+
+        if(_.isObject(quotes)) {
+            // Add symbol to each quote and flatten
+            for(var key in quotes) {
+                _.each(quotes[key], function(quote) {
+                    quote.symbol = key;
+                });
+            }
+
+            flatQuotes = _.reduce(_.keys(quotes), function(memo, key) {
+                return memo.concat(quotes[key]);
+            }, []);
+        } else {
+            flatQuotes = quotes;
+        }
+
+        this.mongoFactory.getEquityDb(function(db){
+            db.collection('quotesDaily').insertMany(flatQuotes);
+            callback(flatQuotes);
+        });
     },
 
     saveQuotes: function(quotes, callback) {
-        this.mongoFactory.getEquityDb(function(db){
-            db.collection('quotesDaily').insertMany(quotes);
-            callback();
-        });
+        this.saveDaily(quotes, callback);
     },
 
     saveQuotesToFile: function(symbol, data) {

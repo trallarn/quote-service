@@ -22,6 +22,7 @@ var connectToDb = function(env, callback) {
 };
 
 module.exports = function(conf) {
+    conf = conf || {};
     var env = conf.env || 'dev';
 
     return {
