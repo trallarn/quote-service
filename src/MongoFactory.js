@@ -2,8 +2,11 @@ var MongoClient = require('mongodb').MongoClient
   , assert = require('assert');
 var db = false;
 
-var connectToDb = function(callback) {
+var connectToDb = function(env, callback) {
 
+    if(env !== 'dev') {
+        throw 'Invalid env "' + env + '". Only dev currently supported';
+    }
 
     // Connection URL
     var url = 'mongodb://localhost:27017/equity';
@@ -18,7 +21,8 @@ var connectToDb = function(callback) {
     });
 };
 
-module.exports = function() {
+module.exports = function(conf) {
+    var env = conf.env || 'dev';
 
     return {
         connect: function(callback) {
@@ -32,7 +36,7 @@ module.exports = function() {
 
         getEquityDb: function(callback) {
             if(!db) {
-                connectToDb(callback);
+                connectToDb(env, callback);
             } else {
                 callback(db);
             }

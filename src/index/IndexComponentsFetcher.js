@@ -39,14 +39,21 @@ IndexComponentsFetcher.prototype = {
             var $row = $(row);
             var name = $row.find('td a').first().text();
 
-            var symbol = $row.children().first().next().text();
+            var rowEls = $row.children();
+            var symbol = rowEls.first().next().text();
+            var currency = rowEls.first().next().next().text();
+            var isin = rowEls.first().next().next().next().text();
+            var sector = rowEls.first().next().next().next().next().text();
 
             //console.log('name ' + name + ' symbol ' + symbol);
 
             if(symbol) {
                 components.push({
                     name: name,
-                    symbol: symbol
+                    symbol: symbol,
+                    currency: currency,
+                    isin: isin,
+                    sector: sector
                 });
             }
         });
