@@ -40,8 +40,11 @@ _.extend(InstrumentRepository.prototype, {
         this.mongoFactory.getEquityDb(function(db){
             var cursor = db.collection('indices').find({name: name});
 
+            cursor.toArray(function(err, items) {
+                if(err) {
+                    throw 'Error caught: ' + err;
+                }
 
-            cursor.toArray().then(function(items) {
                 callback(items[0]);
             });
         });
