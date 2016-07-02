@@ -64,7 +64,20 @@ QuoteRepository.prototype = {
         }
 
         this.mongoFactory.getEquityDb(function(db){
-            db.collection('quotesDaily').insertMany(flatQuotes);
+            // Insert many does not handle upserts (updating existing)
+            //var ret = db.collection('quotesDaily').insertMany(flatQuotes);
+
+            // Upserts. I guess very slow. Shouldn't use mongo
+            _.each(flatQuotes, function(quote) {
+                try {
+                    var ret = db.collection('quotesDaily').update({ symbol: quote.symbol, date: quote.date }, quote, {upsert: true} );
+                    //console.log(ret);
+                } catch (e) {
+                    console.log(e);
+                }
+
+            });
+
             callback(flatQuotes);
         });
     },
