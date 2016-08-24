@@ -48,6 +48,46 @@ _.extend(InstrumentRepository.prototype, {
                 callback(items[0]);
             });
         });
+    },
+
+    getIndexComponents: function(index, callback) {
+        this.getOne('indices', { name: index }, function(index) {
+            this.getCollection('instruments', callback, { symbol: { $in: index.symbols } });
+        }.bind(this))
+    },
+
+    getInstruments: function(callback) {
+        this.getCollection('instruments', callback);
+    },
+
+    getIndices: function(callback) {
+        this.getCollection('indices', callback);
+    },
+
+    getOne: function(collectionName, query, callback) {
+        this.mongoFactory.getEquityDb(function(db){
+            var cursor = db.collection(collectionName).findOne(query, function(err, item) {
+                if(err) {
+                    throw 'Error caught: ' + JSON.stringify(err);
+                }
+
+                callback(item);
+            });
+        });
+    },
+
+    getCollection: function(collectionName, callback, query) {
+        this.mongoFactory.getEquityDb(function(db){
+            var cursor = db.collection(collectionName).find(query);
+
+            cursor.toArray(function(err, items) {
+                if(err) {
+                    throw 'Error caught: ' + err;
+                }
+
+                callback(items);
+            });
+        });
     }
 
 });

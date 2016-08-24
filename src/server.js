@@ -5,6 +5,7 @@ var QuoteLoader = require('./QuoteLoader.js');
 var quoteFetcher = require('./QuoteFetcher.js')();
 var mongoFactory = require('./MongoFactory.js')();
 var quoteRepository = require('./QuoteRepository.js')(mongoFactory);
+var instrumentRepository = require('./InstrumentRepository.js')(mongoFactory);
 var quoteSerializer = require('./QuoteSerializer.js');
 
 mongoFactory.connect();
@@ -13,6 +14,30 @@ assert(quoteRepository, 'quote repo must exist');
 
 
 var app = express();
+
+/**
+ * Fetches all instruments.
+ */
+app.get('/instruments', function (req, res) {
+    instrumentRepository.getInstruments(function(instruments){
+        res.jsonp(instruments);
+    });
+});
+
+/**
+ * Fetches all indices.
+ */
+app.get('/indices', function (req, res) {
+    instrumentRepository.getIndices(function(indices){
+        res.jsonp(indices);
+    });
+});
+
+app.get('/indexComponents/:index', function (req, res) {
+    instrumentRepository.getIndexComponents(req.params.index, function(components){
+        res.jsonp(components);
+    });
+});
 
 /**
  * Fetches daily quotes. 
