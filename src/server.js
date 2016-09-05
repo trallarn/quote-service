@@ -45,8 +45,8 @@ app.get('/indexComponents/:index', function (req, res) {
  */
 app.get('/daily/:symbol', function (req, res) {
     var symbol = req.params.symbol;
-    var from = req.query.from || new Date(1900,1,1);
-    var to = req.query.to || new Date();
+    var from = new Date(req.query.from || new Date(1900,1,1));
+    var to = new Date(req.query.to || new Date());
     var chartType = req.params.chartType || 'ohlc';
     console.log('got request params: ' + JSON.stringify(req.params) + ' query: ' + JSON.stringify(req.query));
 
