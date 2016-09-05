@@ -1,4 +1,5 @@
 node_modules/
+quotes-raw/
 
 *.swp
 npm-debug.log
