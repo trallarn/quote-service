@@ -33,7 +33,7 @@ QuoteRepository.prototype = {
         var query = this._buildQuery(symbol, from, to);
 
         this.mongoFactory.getEquityDb(function(db) {
-            var cursor = db.collection('quotesDaily').find(query);
+            var cursor = db.collection('quotesDaily').find(query).sort( { date: 1 } );
 
             cursor.toArray().then(function(items) {
                 callback(items);
