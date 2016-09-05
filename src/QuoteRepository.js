@@ -63,6 +63,11 @@ QuoteRepository.prototype = {
             flatQuotes = quotes;
         }
 
+        // Unset time zone offset
+        _.each(flatQuotes, function(quote) {
+            quote.date = new Date(quote.date.getTime() - 60000 * quote.date.getTimezoneOffset());
+        });
+
         this.mongoFactory.getEquityDb(function(db){
             // Insert many does not handle upserts (updating existing)
             //var ret = db.collection('quotesDaily').insertMany(flatQuotes);
@@ -70,6 +75,7 @@ QuoteRepository.prototype = {
             // Upserts. I guess very slow. Shouldn't use mongo
             _.each(flatQuotes, function(quote) {
                 try {
+                    //console.log(quote);
                     var ret = db.collection('quotesDaily').update({ symbol: quote.symbol, date: quote.date }, quote, {upsert: true} );
                     //console.log(ret);
                 } catch (e) {
