@@ -1,5 +1,5 @@
 ## Start node-server 
-node start
+npm start
 
 ## Tests
 Runs tests using tape
