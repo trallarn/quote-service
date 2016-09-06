@@ -73,6 +73,12 @@ QuoteRepository.prototype = {
 
         var flatQuotes = this.flattenQuotes(quotes);
 
+        if(flatQuotes.length === 0) {
+            console.log('No quotes to save. Skipping.');
+            callback();
+            return;
+        }
+
         // Unset time zone offset
         _.each(flatQuotes, function(quote) {
             if(!quote) {
