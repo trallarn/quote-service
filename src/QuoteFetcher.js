@@ -3,6 +3,7 @@ var yahooFinance = require('yahoo-finance');
 var request = require("request");
 var csv = require('csv');
 var zeroFill = require('zero-fill');
+var quoteRepository = require('./QuoteRepository.js')(false);
 
 module.exports = QuoteFetcher;
 
@@ -36,10 +37,33 @@ function QuoteFetcher () {
 
     return {
 
+        fetchDataFromLocalFile: function(symbols, from, to, callback) {
+            var dataForSymbols = {};
+            var count = 0;
+
+            _.each(symbols, function(symbol) {
+                quoteRepository.readLocalFile(symbol, function(data) {
+                    count++;
+                    dataForSymbols[symbol] = data;
+
+                    if(count === symbols.length) {
+                        callback(dataForSymbols);
+                    }
+
+                });
+            }, this);
+        },
+
         /**
          * Fetches historical data from yahoo using module.
          */
-        fetchData: function(symbols, fromYear, fromMonth, fromDay, toYear, toMonth, toDay, callback) {
+        fetchData: function(symbols, from, to, callback) {
+            var fromYear = from.getFullYear(), 
+                fromMonth = from.getMonth() + 1, 
+                fromDay = from.getDate(), 
+                toYear = to.getFullYear(), 
+                toMonth = to.getMonth() + 1, 
+                toDay = to.getDate();
 
         symbols = _.isArray(symbols) ? symbols : [symbols];
         var from = fromYear+'-'+ zeroFill(2, fromMonth) +'-'+ zeroFill(2, fromDay);
@@ -52,6 +76,10 @@ function QuoteFetcher () {
             from: from,
             to: to,
             }, function (err, result) {
+                if(err) {
+                    throw err;
+                }
+
                 callback(result);
             });
         },

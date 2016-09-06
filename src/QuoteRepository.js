@@ -1,5 +1,6 @@
 var fs = require('fs');
 var _ = require('underscore');
+var glob = require('glob');
 
 module.exports = QuoteRepository;
 
@@ -7,6 +8,7 @@ function QuoteRepository(mongoFactory) {
     if(!(this instanceof QuoteRepository)) { return new QuoteRepository(mongoFactory) };
 
     this.mongoFactory = mongoFactory;
+    this.quotesOutputDirectory = 'quotes-raw';
 };
 
 QuoteRepository.prototype = {
@@ -41,11 +43,8 @@ QuoteRepository.prototype = {
         });
     },
 
-    /**
-     * Saves daily quotes.
-     * @param quotes <object|[quote]> from yahoo-finance
-     */
-    saveDaily: function(quotes, callback) {
+    flattenQuotes: function(quotes) {
+
         var flatQuotes;
 
         if(_.isObject(quotes)) {
@@ -63,43 +62,126 @@ QuoteRepository.prototype = {
             flatQuotes = quotes;
         }
 
+        return flatQuotes;
+    },
+
+    /**
+     * Saves daily quotes.
+     * @param quotes <object|[quote]> from yahoo-finance
+     */
+    saveDaily: function(quotes, callback) {
+
+        var flatQuotes = this.flattenQuotes(quotes);
+
         // Unset time zone offset
         _.each(flatQuotes, function(quote) {
+            if(!quote) {
+                console.warn('empty quote, skipping it');
+                return;
+            }
+
+            if(!_.isDate(quote.date)) {
+                quote.date = new Date(quote.date);
+            }
+
             quote.date = new Date(quote.date.getTime() - 60000 * quote.date.getTimezoneOffset());
         });
 
-        this.mongoFactory.getEquityDb(function(db){
-            // Insert many does not handle upserts (updating existing)
-            //var ret = db.collection('quotesDaily').insertMany(flatQuotes);
 
-            // Upserts. I guess very slow. Shouldn't use mongo
+        this.mongoFactory.getEquityDb(function(db){
+
+            var bulk = db.collection('quotesDaily').initializeUnorderedBulkOp();
+
             _.each(flatQuotes, function(quote) {
                 try {
-                    //console.log(quote);
-                    var ret = db.collection('quotesDaily').update({ symbol: quote.symbol, date: quote.date }, quote, {upsert: true} );
-                    //console.log(ret);
+
+                    bulk.find({ symbol: quote.symbol, date: quote.date })
+                        .upsert()
+                        .updateOne(quote);
+
                 } catch (e) {
                     console.log(e);
                 }
 
             });
 
-            callback(flatQuotes);
+            var res = bulk.execute(function(err, result) {
+                if(err) {
+                    console.error(err);
+                }
+
+                console.log('mongodb res: ' + result.toJSON());
+
+                callback(flatQuotes);
+            });
+
         });
     },
 
     saveQuotes: function(quotes, callback) {
+
         this.saveDaily(quotes, callback);
+
+        // SAVES TO DISC
+        //for(var symbol in quotes) {
+        //    this.saveQuotesToFile(symbol, quotes[symbol]);
+        //}
+        //callback();
     },
 
     saveQuotesToFile: function(symbol, data) {
 
-        // insert into mongo instead of writing to file
-        var filename = symbol+'.quotes';
+        if(data.length < 1) {
+            console.log('cannot save quotes file for symbol ' + symbol + ' since there are no quotes');
+            return;
+        } else {
+            console.log('saving symbol ' + symbol + ' to  file');
+        }
+
+        var from = _.head(data).date;
+        var to = _.last(data).date;
+
+        var filename = this.createLocalFilename(symbol, from, to);
 
         fs.writeFile(filename, JSON.stringify(data), function (err) {
             if (err) return console.log(err);
                 console.log('wrote ' + filename);
+        });
+
+    },
+
+    createLocalFilename: function(symbol, from, to) {
+        var filename = '{dir}/{name}_{from}-{to}.quotes'
+            .replace('{dir}', this.quotesOutputDirectory)
+            .replace('{name}', symbol)
+            .replace('{from}', from ? ''+from.getFullYear()+from.getMonth()+from.getDate() : '*')
+            .replace('{to}', to ? ''+to.getFullYear()+to.getMonth()+to.getDate() : '*');
+
+        return filename;
+    },
+
+    /**
+     * Reads local file with quote data.
+     */
+    readLocalFile: function(symbol, callback) {
+        
+        var filename = this.createLocalFilename(symbol);
+
+        glob(filename, {}, function(err, files) {
+            if(files.length < 1) {
+                console.warn('no file found with name ' + filename);
+                callback(false);
+                return;
+            }
+
+            fs.readFile(files[0], function(err, data) {
+                if(err) {
+                    console.warn(err);
+                }
+
+                callback(JSON.parse(data));
+            });
+
         });
 
     }

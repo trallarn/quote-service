@@ -41,11 +41,12 @@ QuoteLoader.prototype = {
 
         var symbolBatches = this._toBatches(symbols);
         var batchCount = 0;
-        var allQuotes = [];
+        //var allQuotes = [];
 
         _.each(symbolBatches, function(symbols) {
 
-            this.quoteFetcher.fetchData(symbols, from.getFullYear(), from.getMonth() + 1, from.getDate(), to.getFullYear(), to.getMonth() + 1, to.getDate(), function(data) {
+            //this.quoteFetcher.fetchDataFromLocalFile(symbols, from, to, function(data) {
+            this.quoteFetcher.fetchData(symbols, from, to, function(data) {
 
                 //console.dir(data);
 
@@ -53,13 +54,16 @@ QuoteLoader.prototype = {
                     throw 'Data is empty';
                 }
 
+                console.log('Saving quotes for symbols: ' + symbols);
+
                 this.quoteRepository.saveQuotes(data, function(quotes){
                     console.log('saved quotes for ' + symbols);
-                    allQuotes = allQuotes.concat(quotes);
+                    //allQuotes = allQuotes.concat(quotes);
                     batchCount += 1;
 
                     if(batchCount === symbolBatches.length) {
-                        callback(allQuotes);
+                        //callback(allQuotes);
+                        callback();
                     }
                 });
                  

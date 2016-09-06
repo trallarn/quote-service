@@ -14,7 +14,7 @@ var quoteLoader = new QuoteLoader({
  * @param index name
  * @param optional fromDate 
  */
-function fetch(indexName, fromDate) {
+function fetch(indexName, fromDate, callback) {
 
     console.log('fetching quotes for index: ' + indexName);
 
@@ -25,7 +25,15 @@ function fetch(indexName, fromDate) {
             throw 'Got no index for name ' + indexName;
         }
 
-        var from = fromDate || index.lastFetchDaily;
+        var from; 
+        
+        if(fromDate) {
+            from = fromDate;
+        } else {
+            // Fetch a few days back in history
+            from = getNumDaysBefore(index.lastFetchDaily, 4);
+        }
+
         var to = new Date();
         var symbols = index.symbols;
 
@@ -36,6 +44,10 @@ function fetch(indexName, fromDate) {
 
         fetchForSymbols(symbols, from, to, function() {
             instrumentRepository.saveIndexLastFetchDaily(index, to);
+
+            if(callback) {
+                callback();
+            }
         });
     });
 }
@@ -47,7 +59,6 @@ function fetchForSymbols(symbols, from, to, callback) {
     symbols = _.isArray(symbols) ? symbols : [symbols];
     var from = from || new Date(1800,1,1);
     var to = to || new Date();
-    debugger;
 
     quoteLoader.fetchDaily(symbols, from, to, function(quotes)  {
         console.log('done saving quotes');
@@ -61,21 +72,51 @@ function fetchForSymbols(symbols, from, to, callback) {
 
 }
 
+function shutdown() {
+    // Give db chance to finish its operations
+    //setTimeout(function() {
+    //}, 5000);
+    mongoFactory.closeEquityDb();
+}
+
 function getNumDaysBefore(date, numDays) {
     var before = new Date(date.getTime());
     before.setTime(date.getTime() - numDays * 24 * 3600 * 1000);
     return before;
 }
 
-//fetch('stockholm', new Date(1800,1,1));
-fetch('stockholm');
-//fetch('Indices', new Date(2016,5,29));
-fetch('Indices');
-// Shut down when all done
-//mongoFactory.closeEquityDb();
+
+function runJobs() {
+
+    var jobs = [
+        //['stockholm', new Date(1800,1,1)],
+        //['Indices', new Date(1800,1,1)]
+        ['stockholm'],
+        ['Indices']
+    ];
+
+    var jobMem = { count: 0, stopAt: jobs.length };
+
+    _.each(jobs, function(job) {
+        fetch(job[0], job[1], function() {
+            jobMem.count++;
+
+            if(jobMem.count === jobMem.stopAt) {
+                console.log('Job count reached. Shutting down.');
+                //shutdown();
+            }
+        });
+    });
+}
+
+runJobs();
 
 
-//var today = new Date(2016, 6, 1);
-//var yesterday = getNumDaysBefore(today, 1);
-//fetchForSymbols(['^OMXSPI'], today, today);
+//var endDate = new Date(2016, 6, 1);
+var endDate = new Date();
+//var startDate = getNumDaysBefore(endDate, 3);
+var startDate = new  Date(1900,1,1);
+//fetchForSymbols(['^OMXSPI','^DJI','^GSPC'], startDate, endDate, shutdown);
+//fetchForSymbols(['^OMXSPI'], startDate, endDate, shutdown);
+//fetchForSymbols(['IS.ST','KABE-B.ST'], startDate, endDate, shutdown);
 
