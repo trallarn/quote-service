@@ -8,6 +8,11 @@ var quoteRepository = require('./QuoteRepository.js')(mongoFactory);
 var instrumentRepository = require('./InstrumentRepository.js')(mongoFactory);
 var quoteSerializer = require('./QuoteSerializer.js');
 
+var quoteLoader = new QuoteLoader({
+    quoteRepository: quoteRepository,
+    quoteFetcher: quoteFetcher
+});
+
 mongoFactory.connect();
 
 assert(quoteRepository, 'quote repo must exist');
@@ -41,18 +46,30 @@ app.get('/indexComponents/:index', function (req, res) {
 
 /**
  * Fetches daily quotes. 
+ * @query params: 
+ *  refreshData - fetches and saves quotes from source
  * @return empty if quotes are missing
  */
 app.get('/daily/:symbol', function (req, res) {
     var symbol = req.params.symbol;
     var from = new Date(req.query.from || new Date(1900,1,1));
     var to = new Date(req.query.to || new Date());
-    var chartType = req.params.chartType || 'ohlc';
+    var chartType = req.query.chartType || 'ohlc';
+    var refreshData = req.query.refreshData;
+
     console.log('got request params: ' + JSON.stringify(req.params) + ' query: ' + JSON.stringify(req.query));
 
-    quoteRepository.getAsync(symbol, from, to, function(quotes){
+    var getQuotesAndWrite = quoteRepository.getAsync.bind(quoteRepository, symbol, from, to, function(quotes){
         res.jsonp(quoteSerializer.mongoToHighstock(symbol, quotes, chartType));
     });
+
+    if(refreshData) {
+        console.log('refreshing data');
+        quoteLoader.fetchDaily([symbol], new Date(1900,1,1), new Date(), getQuotesAndWrite);
+    } else {
+        getQuotesAndWrite();
+    }
+
 });
 
 /**
