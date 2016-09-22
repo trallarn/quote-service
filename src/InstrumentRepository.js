@@ -50,8 +50,12 @@ _.extend(InstrumentRepository.prototype, {
         });
     },
 
-    getIndexComponents: function(index, callback) {
-        this.getOne('indices', { name: index }, function(index) {
+    getIndexComponents: function(indexName, callback) {
+        this.getOne('indices', { name: indexName }, function(index) {
+            if(!index) {
+                throw 'Invalid index: "' + indexName + '"';
+            }
+
             this.getCollection('instruments', callback, { symbol: { $in: index.symbols } });
         }.bind(this))
     },

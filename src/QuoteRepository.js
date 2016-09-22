@@ -22,11 +22,12 @@ QuoteRepository.prototype = {
             query.date = { $gte: from };
         }
 
-        //if(to) {
-        //    query.date = { $lte: to };
-        //}
+        if(to) {
+            query.date = query.date || {};
+            query.date.$lte = to;
+        }
 
-        console.log('get query: ' + JSON.stringify(query));
+        console.log('building get query: ' + JSON.stringify(query));
 
         return query;
     },

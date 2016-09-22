@@ -4,7 +4,9 @@ var assert = require('assert');
 var QuoteLoader = require('./QuoteLoader.js');
 var quoteFetcher = require('./QuoteFetcher.js')();
 var mongoFactory = require('./MongoFactory.js')();
+var instrumentRepository = require('./InstrumentRepository.js')(mongoFactory);
 var quoteRepository = require('./QuoteRepository.js')(mongoFactory);
+var changeRepository = require('./ChangeRepository.js')(quoteRepository, instrumentRepository);
 var instrumentRepository = require('./InstrumentRepository.js')(mongoFactory);
 var quoteSerializer = require('./QuoteSerializer.js');
 
@@ -41,6 +43,27 @@ app.get('/indices', function (req, res) {
 app.get('/indexComponents/:index', function (req, res) {
     instrumentRepository.getIndexComponents(req.params.index, function(components){
         res.jsonp(components);
+    });
+});
+
+app.get('/instruments/change/', function (req, res) {
+    console.log('got request params: ' + JSON.stringify(req.params) + ' query: ' + JSON.stringify(req.query));
+
+    if(!req.query.from) {
+        console.warn('Missing from query');
+        res.jsonp({
+            err: 'Must supply from query'
+        });
+
+        return;
+    }
+
+    var index = req.query.index;
+    var from = new Date(req.query.from);
+    var to = req.query.to ? new Date(req.query.to) : new Date();
+
+    changeRepository.getInstrumentsWithChange(index, from, to, function(instruments){
+        res.jsonp(instruments);
     });
 });
 
