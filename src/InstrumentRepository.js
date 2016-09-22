@@ -64,6 +64,10 @@ _.extend(InstrumentRepository.prototype, {
         this.getCollection('instruments', callback);
     },
 
+    getInstrument: function(symbol, callback) {
+        this.getOne('instruments', { symbol: symbol }, callback);
+    },
+
     getIndices: function(callback) {
         this.getCollection('indices', callback);
     },

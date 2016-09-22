@@ -31,7 +31,12 @@ ChangeRepository.prototype = {
 
         var instrumentsWithChange = [];
 
-        var onInstruments = function(instruments) {
+        /**
+         *
+         * @param index - is added to instruments if given
+         * @param instruments - to calculcate change for
+         */
+        var onInstruments = function(index, instruments) {
 
             var onInstrumentWithChange = function(instrumentWithChange) {
                 instrumentsWithChange.push(instrumentWithChange);
@@ -77,6 +82,10 @@ ChangeRepository.prototype = {
 
             };
         
+            if(index) {
+                instruments.push(index);
+            }
+
             _.each(instruments, function(instrument) {
                 var fromQuotes;
                 var toQuotes;
@@ -107,9 +116,14 @@ ChangeRepository.prototype = {
         }.bind(this);
 
         if(index) {
-            this.instrumentRepository.getIndexComponents(index, onInstruments);
+            // Add index
+            this.instrumentRepository.getInstrument(index, function(indexInstrument) {
+
+                this.instrumentRepository.getIndexComponents(index, onInstruments.bind(this, indexInstrument));
+            }.bind(this));
+
         } else {
-            this.instrumentRepository.getInstruments(onInstruments);
+            this.instrumentRepository.getInstruments(onInstruments.bind(this, false));
         }
 
     }
