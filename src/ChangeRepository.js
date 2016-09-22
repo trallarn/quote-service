@@ -35,7 +35,6 @@ ChangeRepository.prototype = {
 
             var onInstrumentWithChange = function(instrumentWithChange) {
                 instrumentsWithChange.push(instrumentWithChange);
-                console.log('pushing');
 
                 if(instruments.length === instrumentsWithChange.length) {
                     callback(instrumentsWithChange);
@@ -44,15 +43,26 @@ ChangeRepository.prototype = {
             };
 
             var addChange = function(instrument, fromQuote, toQuote) {
-                console.log('add change');
+
+                var change;
 
                 try {
-                    var change = (fromQuote.close / toQuote.close - 1) * 100;
+                    if(!fromQuote) {
+                        console.error('cannot calculate change without from quote');
+                        change = 'no quote';
+                    }
+                    if(!toQuote) {
+                        console.error('cannot calculate change without to quote');
+                        change = 'no quote';
+                    }
+                        
+                    if(!change) {
+                        change = (toQuote.close / fromQuote.close - 1) * 100;
+                    }
                 } catch(e) {
                     console.error('Error in division');
                     change = 'error';
                 }
-                console.log('done change');
 
                 // Append extra info to instrument
                 instrument.extra = {
@@ -79,7 +89,6 @@ ChangeRepository.prototype = {
                     }
 
                     if(fromQuotes && toQuotes) {
-                        console.log('calling');
                         addChange(instrument, _.first(fromQuotes), _.last(toQuotes));
                     }
                 };
