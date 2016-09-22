@@ -20,21 +20,25 @@ function convertToYahooSymbols(components) {
     });
 }
 
-function createIndex(components, name) {
+function createIndex(components, index) {
     return {
         symbols: _.map(components, function(c) { return c.symbol;}),
-        name: name
+        name: index.name,
+        indexSymbols: index.indexSymbols
     };
 }
 
 
-var indexName = 'stockholm';
+var indexSpec = {
+    name: 'stockholm',
+    indexSymbols: ['^OMXSPI']
+};
 
-fetcher.fetchComponentsFromNasdaqOmx(indexName, function(components) {
+fetcher.fetchComponentsFromNasdaqOmx(indexSpec.name, function(components) {
     console.log('got components: ' + JSON.stringify(components));
 
     components = convertToYahooSymbols(components);
-    var index = createIndex(components, indexName);
+    var index = createIndex(components, indexSpec);
 
     // Continue to save in db
     instrumentRepository.saveIndex(index);
