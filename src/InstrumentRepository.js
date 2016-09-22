@@ -64,12 +64,27 @@ _.extend(InstrumentRepository.prototype, {
         this.getCollection('instruments', callback);
     },
 
+    /**
+     * @param symbols [symbol]
+     */
+    getInstrumentsBySymbols: function(symbols, callback) {
+        if(!_.isArray(symbols)) {
+            throw 'Symbols must be an array';
+        }
+
+        this.getCollection('instruments', callback, { symbol: { $in: symbols } } );
+    },
+
     getInstrument: function(symbol, callback) {
         this.getOne('instruments', { symbol: symbol }, callback);
     },
 
     getIndices: function(callback) {
         this.getCollection('indices', callback);
+    },
+
+    getIndex: function(name, callback) {
+        this.getOne('indices', { name: name }, callback);
     },
 
     getOne: function(collectionName, query, callback) {

@@ -36,7 +36,7 @@ ChangeRepository.prototype = {
          * @param index - is added to instruments if given
          * @param instruments - to calculcate change for
          */
-        var onInstruments = function(index, instruments) {
+        var onInstruments = function(indexInstruments, instruments) {
 
             var onInstrumentWithChange = function(instrumentWithChange) {
                 instrumentsWithChange.push(instrumentWithChange);
@@ -55,10 +55,12 @@ ChangeRepository.prototype = {
                     if(!fromQuote) {
                         console.error('cannot calculate change without from quote');
                         change = 'no quote';
+                        fromQuote = {};
                     }
                     if(!toQuote) {
                         console.error('cannot calculate change without to quote');
                         change = 'no quote';
+                        toQuote = {};
                     }
                         
                     if(!change) {
@@ -82,8 +84,9 @@ ChangeRepository.prototype = {
 
             };
         
-            if(index) {
-                instruments.push(index);
+            if(indexInstruments) {
+                // Adds indices to instruments
+                instruments = instruments.concat(indexInstruments);
             }
 
             _.each(instruments, function(instrument) {
@@ -117,9 +120,12 @@ ChangeRepository.prototype = {
 
         if(index) {
             // Add index
-            this.instrumentRepository.getInstrument(index, function(indexInstrument) {
+            this.instrumentRepository.getIndex(index, function(indexIndex) {
+                this.instrumentRepository.getInstrumentsBySymbols(indexIndex.indexSymbols, function(indexInstruments) {
 
-                this.instrumentRepository.getIndexComponents(index, onInstruments.bind(this, indexInstrument));
+                    this.instrumentRepository.getIndexComponents(index, onInstruments.bind(this, indexInstruments));
+                }.bind(this));
+
             }.bind(this));
 
         } else {
