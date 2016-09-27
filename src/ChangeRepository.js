@@ -65,7 +65,7 @@ ChangeRepository.prototype = {
                         
                     if(!change) {
                         change = (toQuote.close / fromQuote.close - 1) * 100;
-                        change = change.toFixed(2);
+                        change = Math.round(change * 100 ) / 100;
                     }
                 } catch(e) {
                     console.error('Error in division');
