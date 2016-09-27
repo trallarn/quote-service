@@ -50,16 +50,19 @@ ChangeRepository.prototype = {
             var addChange = function(instrument, fromQuote, toQuote) {
 
                 var change;
+                var error;
 
                 try {
                     if(!fromQuote) {
                         console.error('cannot calculate change without from quote');
-                        change = 'no quote';
+                        change = 'no from quote';
+                        error = 'change no from quote';
                         fromQuote = {};
                     }
                     if(!toQuote) {
                         console.error('cannot calculate change without to quote');
-                        change = 'no quote';
+                        change = 'no to quote';
+                        error = 'change no to quote';
                         toQuote = {};
                     }
                         
@@ -80,6 +83,10 @@ ChangeRepository.prototype = {
                         change: change
                     }
                 };
+
+                if(error) {
+                    instrument.extra.error = error;
+                }
 
                 onInstrumentWithChange(instrument);
 
