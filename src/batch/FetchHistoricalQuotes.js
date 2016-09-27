@@ -103,7 +103,7 @@ function runJobs() {
 
             if(jobMem.count === jobMem.stopAt) {
                 console.log('Job count reached. Shutting down.');
-                //shutdown();
+                setTimeout(shutdown, 2000); // small delay to let last operations finish (TODO: add callbacks instead of using delay)
             }
         });
     });
