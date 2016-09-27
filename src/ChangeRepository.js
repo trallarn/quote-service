@@ -65,6 +65,7 @@ ChangeRepository.prototype = {
                         
                     if(!change) {
                         change = (toQuote.close / fromQuote.close - 1) * 100;
+                        change = change.toFixed(2);
                     }
                 } catch(e) {
                     console.error('Error in division');
@@ -121,7 +122,7 @@ ChangeRepository.prototype = {
         if(index) {
             // Add index
             this.instrumentRepository.getIndex(index, function(indexIndex) {
-                this.instrumentRepository.getInstrumentsBySymbols(indexIndex.indexSymbols, function(indexInstruments) {
+                this.instrumentRepository.getInstrumentsBySymbols(indexIndex.indexSymbols || [], function(indexInstruments) {
 
                     this.instrumentRepository.getIndexComponents(index, onInstruments.bind(this, indexInstruments));
                 }.bind(this));
