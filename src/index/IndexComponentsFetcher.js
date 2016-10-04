@@ -8,29 +8,73 @@ function IndexComponentsFetcher() {
 
     //this.baseUrl = 'http://finance.yahoo.com/q/cp?s=%5E{index}&c={page}';
     //this.index = 'OMXSPI';
-    this.baseUrl = 'http://www.nasdaqomxnordic.com/shares/listed-companies/{index}';
     //index = nordic-large-cap | stockholm
 }
 
 
 IndexComponentsFetcher.prototype = {
 
-    fetchComponentsFromNasdaqOmx: function(index, callback) {
-
-        var url = this.baseUrl.replace('{index}', index);
+    getUrl: function(url, callback) {
 
         request(url, function(err, response, body) {
             if(err) {
                 throw err;
             }
 
-            var components = this.parseNasdaqOmx(body);
-            callback(components);
+            callback(body);
         }.bind(this));
-        
     },
 
-    parseNasdaqOmx: function(body) {
+    /**
+     * Fetches all listed stockholm companies at nasdaq omx.
+     */
+    fetchListedCompaniesFromNasdaqOmx: function(index, callback) {
+        var baseUrl = 'http://www.nasdaqomxnordic.com/shares/listed-companies/{index}';
+
+        var url = baseUrl.replace('{index}', index);
+
+        this.getUrl(url, function(body) {
+            var components = this.parseNasdaqOmxListedCompanies(body);
+            callback(components);
+        }.bind(this));
+
+    },
+
+    /**
+     * Parses the components table on this page:
+     * http://www.nasdaqomxnordic.com/index/index_info?Instrument=SE0001775784
+     */
+    parseNasdaqOmxIndexComponents: function(body) {
+        //console.log(body);
+        var $ = cheerio.load(body);
+        var rows = $('#sharesInIndexTable tr').has('td');
+
+        var components = [];
+        rows.each(function(i, row) {
+            var $row = $(row);
+            var name = $row.find('td a').first().text();
+
+            var rowEls = $row.children();
+            var currency = rowEls.first().next().text();
+
+            //console.log('name ' + name + ' currency ' + currency);
+
+            if(name) {
+                components.push({
+                    name: name,
+                    currency: currency
+                });
+            }
+        });
+
+        return components;
+    },
+
+    /**
+     * Parse compoonents from this page:
+     * http://www.nasdaqomxnordic.com/shares/listed-companies/stockholm
+     */
+    parseNasdaqOmxListedCompanies: function(body) {
         var $ = cheerio.load(body);
         var rows = $('#listedCompanies tr').has('td');
 

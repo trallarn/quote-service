@@ -1,9 +1,14 @@
+var Promise = require('promise');
 var _ = require('underscore');
 
 module.exports = InstrumentRepository;
 
 function InstrumentRepository(mongoFactory) {
     if(!(this instanceof InstrumentRepository)) { return new InstrumentRepository(mongoFactory) };
+
+    if(!mongoFactory) {
+        throw 'Missing mongoFactory';
+    }
 
     this.mongoFactory = mongoFactory;
 }
@@ -14,8 +19,12 @@ _.extend(InstrumentRepository.prototype, {
      * Saves instruments
      */
     saveInstruments: function(instruments) {
-        this.mongoFactory.getEquityDb(function(db){
-            db.collection('instruments').insertMany(instruments);
+        return new Promise(function(fulfill, reject) {
+            this.mongoFactory.getEquityDb(function(db){
+                db.collection('instruments').insertMany(instruments)
+                    .then(fulfill)
+                    .catch(reject);
+            });
         });
     },
 
@@ -23,9 +32,19 @@ _.extend(InstrumentRepository.prototype, {
      * Saves an index.
      */
     saveIndex: function(index) {
-        this.mongoFactory.getEquityDb(function(db){
-            db.collection('indices').save(index);
-        });
+        return new Promise(function(fulfill, reject) {
+            this.mongoFactory.getEquityDb(function(db){
+                db.collection('indices').update({ name: index.name }, { $set: index }, { upsert: true } )
+                    .then(function(item) {
+                        console.log('saved index: ' + index.name);
+                        console.log(JSON.stringify(index));
+                        fulfill(item);
+                    })
+                    .catch(function(err) {
+                        reject(err);
+                    });
+            });
+        }.bind(this));
     },
 
     saveIndexLastFetchDaily: function(index, lastFetchDaily) {
@@ -62,6 +81,17 @@ _.extend(InstrumentRepository.prototype, {
 
     getInstruments: function(callback) {
         this.getCollection('instruments', callback);
+    },
+
+    /**
+     * @param names [name]
+     */
+    getInstrumentsByNames: function(names, callback) {
+        if(!_.isArray(names)) {
+            throw 'names must be an array';
+        }
+
+        this.getCollection('instruments', callback, { name: { $in: names } } );
     },
 
     /**

@@ -34,17 +34,23 @@ var indexSpec = {
     indexSymbols: ['^OMXSPI']
 };
 
-fetcher.fetchComponentsFromNasdaqOmx(indexSpec.name, function(components) {
+fetcher.fetchListedCompaniesFromNasdaqOmx(indexSpec.name, function(components) {
     console.log('got components: ' + JSON.stringify(components));
 
     components = convertToYahooSymbols(components);
     var index = createIndex(components, indexSpec);
 
     // Continue to save in db
-    instrumentRepository.saveIndex(index);
-    instrumentRepository.saveInstruments(components);
-
-    mongoFactory.closeEquityDb();
+    instrumentRepository.saveIndex(index)
+        .then(function() {
+            instrumentRepository.saveInstruments(components)
+                .then(mongoFactory.closeEquityDb)
+                .catch(mongoFactory.closeEquityDb);
+        })
+        .catch(function(err) {
+            console.log(err);
+            mongoFactory.closeEquityDb();
+        });
 
 });
 
