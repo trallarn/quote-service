@@ -76,13 +76,14 @@ ChangeRepository.prototype = {
                 }
 
                 // Append extra info to instrument
-                instrument.extra = {
-                    change: {
+                instrument.extra = instrument.extra || {};
+                instrument.extra.change = _.extend({}, {
                         fromQuote: fromQuote,
                         toQuote: toQuote,
-                        change: change
-                    }
-                };
+                        change: change,
+                        isBenchmark: false
+                    }, instrument.extra.change 
+                );
 
                 if(error) {
                     instrument.extra.error = error;
@@ -94,6 +95,14 @@ ChangeRepository.prototype = {
         
             if(indexInstruments) {
                 // Adds indices to instruments
+                _.each(indexInstruments, function(indexInstrument) {
+                    indexInstrument.extra = {
+                        change: {
+                            isBenchmark: true
+                        }
+                    };
+                });
+
                 instruments = instruments.concat(indexInstruments);
             }
 
