@@ -1,0 +1,20 @@
+use equity;
+
+db.instruments.update( { symbol: "EURUSD=X" }, { $set: { name: "USD/EUR", symbol: "EURUSD=X" } }, { upsert: true } );
+db.instruments.update( { symbol: "^OMXS30" }, { $set: { name: "OMXS30", symbol: "^OMXS30" } }, { upsert: true } );
+db.instruments.update( { symbol: "^OMXSPI" }, { $set: { name: "OMXSPI", symbol: "^OMXSPI" } }, { upsert: true } );
+db.instruments.update( { symbol: "^DJI" }, { $set: { name: "DJI", symbol: "^DJI" } }, { upsert: true } );
+db.instruments.update( { symbol: "^IXIC" }, { $set: { name: "Nasdaq", symbol: "^IXIC" } }, { upsert: true } );
+db.instruments.update( { symbol: "^GSPC" }, { $set: { name: "S&P500", symbol: "^GSPC" } }, { upsert: true } );
+db.instruments.update( { symbol: "^FTSE" }, { $set: { name: "FTSE100", symbol: "^FTSE" } }, { upsert: true } );
+db.instruments.update( { symbol: "^GDAXI" }, { $set: { name: "DAX", symbol: "^GDAXI" } }, { upsert: true } );
+db.instruments.update( { symbol: "^N225" }, { $set: { name: "Nikkei225", symbol: "^N225" } }, { upsert: true } );
+db.instruments.update( { symbol: "^HSI" }, { $set: { name: "Hang Seng", symbol: "^HSI" } }, { upsert: true } );
+db.instruments.update( { symbol: "^000001.SS" }, { $set: { name: "Shanghai", symbol: "^000001.SS" } }, { upsert: true } );
+db.instruments.update( { symbol: "^BSESN" }, { $set: { name: "Bombay", symbol: "^BSESN" } }, { upsert: true } );
+db.instruments.update( { symbol: "^N100" }, { $set: { name: "Euronext100", symbol: "^N100" } }, { upsert: true } );
+db.instruments.update( { symbol: "^AORD" }, { $set: { name: "Australia", symbol: "^AORD" } }, { upsert: true } );
+
+db.indices.update({ name: "Indices" }, { $set: { "name" : "Indices", "symbols" : [ "^OMXS30", "^OMXSPI", "^DJI", "^IXIC", "^GSPC","^FTSE","^GDAXI","^N225","^HSI","000001.SS","^BSESN","^N100","^AORD" ] } }, { upsert: true } );
+
+
