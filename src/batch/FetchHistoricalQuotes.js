@@ -1,4 +1,4 @@
-var _ = require('underscore');
+    var _ = require('underscore');
 var QuoteLoader = require('../QuoteLoader.js');
 var quoteFetcher = require('../QuoteFetcher.js')();
 var mongoFactory = require('../MongoFactory.js')({env: 'dev'});
@@ -31,7 +31,11 @@ function fetch(indexName, fromDate, callback) {
             from = fromDate;
         } else {
             // Fetch a few days back in history
-            from = getNumDaysBefore(index.lastFetchDaily, 4);
+            if(index.lastFetchDaily) {
+                from = getNumDaysBefore(index.lastFetchDaily, 4);
+            } else {
+                from = new Date(1900,1,1);
+            }
         }
 
         var to = new Date();
@@ -91,7 +95,11 @@ function runJobs() {
     var jobs = [
         //['stockholm', new Date(1800,1,1)],
         //['Indices', new Date(1800,1,1)]
+        //['Currencies', new Date(1800,1,1)]
+        //['Commodities', new Date(1800,1,1)]
         ['stockholm'],
+        ['Currencies'],
+        ['Commodities'],
         ['Indices']
     ];
 

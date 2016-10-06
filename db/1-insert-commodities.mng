@@ -1,0 +1,15 @@
+# Commodities doesn't seem to be available through yahoo api 
+
+use equity;
+
+db.instruments.insert( { name: "Silver", symbol: "SI=F" } );
+db.instruments.insert( { name: "Gold", symbol: "GC=F" } );
+db.instruments.insert( { name: "Platinum", symbol: "PL=F" } );
+db.instruments.insert( { name: "Copper", symbol: "HG=F" } );
+db.instruments.insert( { name: "Paladium", symbol: "PA=F" } );
+db.instruments.insert( { name: "Cocoa", symbol: "CC=F" } );
+db.instruments.insert( { name: "Coffe", symbol: "KF=F" } );
+db.instruments.insert( { name: "Cotton", symbol: "CT=F" } );
+db.instruments.insert( { name: "Sugar", symbol: "SB=F" } );
+
+db.indices.insert({ name: "Commodities", symbols: ["SI=F", "GC=F","CL=F","PL=F","HG=F","PA=F","CC=F","KC=F","CT=F","SB=F"] });

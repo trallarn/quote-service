@@ -1,0 +1,7 @@
+use equity;
+
+db.instruments.insert( { name: "USD/SEK", symbol: "SEK=X" } );
+db.instruments.insert( { name: "GBP/SEK", symbol: "GBPSEK=X" } );
+db.instruments.insert( { name: "USD/EUR", symbol: "EURUSD=X" } );
+
+db.indices.update({ name: "Currencies" }, { $set: { name: "Currencies", symbols: [ "SEK=X","GBPSEK=X", "EURUSD=X" ] } }, { upsert: true } );
