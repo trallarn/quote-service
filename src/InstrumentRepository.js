@@ -110,7 +110,7 @@ _.extend(InstrumentRepository.prototype, {
     },
 
     getIndices: function(callback) {
-        this.getCollection('indices', callback);
+        this.getCollection('indices', callback, {}, { name: 1 } );
     },
 
     getIndex: function(name, callback) {
@@ -129,9 +129,13 @@ _.extend(InstrumentRepository.prototype, {
         });
     },
 
-    getCollection: function(collectionName, callback, query) {
+    getCollection: function(collectionName, callback, query, sortParams) {
         this.mongoFactory.getEquityDb(function(db){
             var cursor = db.collection(collectionName).find(query);
+
+            if(sortParams) {
+                cursor = cursor.sort(sortParams);
+            }
 
             cursor.toArray(function(err, items) {
                 if(err) {
