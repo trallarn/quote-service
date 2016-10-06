@@ -33,15 +33,22 @@ var quoteSerializer = {
 
     mongoToHighstockOHLC: function(symbol, data) {
         var quotes = _.map(data, function(quote) {
-            return {
-                x: new Date(quote.date).getTime(),
-                open: quote.open,
-                high: quote.high,
-                low: quote.low,
-                close: quote.close,
-                name: quote.symbol,
-                color: '#328822'
-            };
+            //return {
+            //    x: new Date(quote.date).getTime(),
+            //    open: quote.open,
+            //    high: quote.high,
+            //    low: quote.low,
+            //    close: quote.close,
+            //    name: quote.symbol,
+            //    color: '#328822'
+            //};
+            return [
+                new Date(quote.date).getTime(),
+                quote.open,
+                quote.high,
+                quote.low,
+                quote.close
+            ];
 
         });
 
