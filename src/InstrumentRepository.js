@@ -25,7 +25,7 @@ _.extend(InstrumentRepository.prototype, {
                     .then(fulfill)
                     .catch(reject);
             });
-        });
+        }.bind(this));
     },
 
     /**
