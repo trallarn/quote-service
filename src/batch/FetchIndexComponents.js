@@ -45,7 +45,10 @@ fetcher.fetchListedCompaniesFromNasdaqOmx(indexSpec.name, function(components) {
         .then(function() {
             instrumentRepository.saveInstruments(components)
                 .then(mongoFactory.closeEquityDb)
-                .catch(mongoFactory.closeEquityDb);
+                .catch(function(err) {
+                    console.log(err);
+                    mongoFactory.closeEquityDb();
+                })
         })
         .catch(function(err) {
             console.log(err);
