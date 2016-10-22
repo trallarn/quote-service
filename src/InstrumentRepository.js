@@ -19,9 +19,13 @@ _.extend(InstrumentRepository.prototype, {
      * Saves instruments
      */
     saveInstruments: function(instruments) {
+        if(!_.isArray(instruments)) {
+            throw 'instruments must be an array';
+        }
+
         return new Promise(function(fulfill, reject) {
             this.mongoFactory.getEquityDb(function(db){
-                db.collection('instruments').insertMany(instruments)
+                db.collection('instruments').insert(instruments)
                     .then(fulfill)
                     .catch(reject);
             });
