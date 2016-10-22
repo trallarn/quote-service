@@ -90,17 +90,18 @@ function getNumDaysBefore(date, numDays) {
 }
 
 
-function runJobs() {
+function runJobs(fromStartOfTimes) {
+    var from = fromStartOfTimes ? new Date(1800,1,1) : false;
 
     var jobs = [
         //['stockholm', new Date(1800,1,1)],
         //['Indices', new Date(1800,1,1)]
         //['Currencies', new Date(1800,1,1)]
         //['Commodities', new Date(1800,1,1)]
-        ['stockholm'],
-        ['Currencies'],
-        ['Commodities'],
-        ['Indices']
+        ['stockholm', from],
+        ['Currencies', from],
+        ['Commodities', from],
+        ['Indices', from]
     ];
 
     var jobMem = { count: 0, stopAt: jobs.length };
@@ -117,7 +118,9 @@ function runJobs() {
     });
 }
 
-runJobs();
+var fromStartOfTimes = process.argv[2];
+
+runJobs(fromStartOfTimes);
 
 
 //var endDate = new Date(2016, 6, 1);
