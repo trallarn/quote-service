@@ -79,7 +79,7 @@ _.extend(InstrumentRepository.prototype, {
                 throw 'Invalid index: "' + indexName + '"';
             }
 
-            this.getCollection('instruments', callback, { symbol: { $in: index.symbols } });
+            this.getCollection('instruments', callback, { symbol: { $in: index.symbols } }, { name: 1 });
         }.bind(this))
     },
 
