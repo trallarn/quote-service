@@ -31,5 +31,5 @@ DATA_SMALLCAP=$(curl 'http://www.nasdaqomxnordic.com/webproxy/DataFeedProxy.aspx
 updateIndex OMXSLCPI ^OMXSPI "$DATA_LARGECAP"
 updateIndex OMXSMCPI ^OMXSPI "$DATA_MIDCAP"
 updateIndex OMXSSCPI ^OMXSPI "$DATA_SMALLCAP"
-updateIndex OMXS30 ^OMXSPI "$DATA_OMXS30"
+updateIndex OMXS30 ^OMX "$DATA_OMXS30"
 
