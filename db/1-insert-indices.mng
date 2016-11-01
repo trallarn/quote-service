@@ -1,7 +1,7 @@
 use equity;
 
 db.instruments.update( { symbol: "EURUSD=X" }, { $set: { name: "USD/EUR", symbol: "EURUSD=X" } }, { upsert: true } );
-db.instruments.update( { symbol: "^OMXS30" }, { $set: { name: "OMXS30", symbol: "^OMXS30" } }, { upsert: true } );
+db.instruments.update( { symbol: "^OMX" }, { $set: { name: "OMXS30", symbol: "^OMX" } }, { upsert: true } );
 db.instruments.update( { symbol: "^OMXSPI" }, { $set: { name: "OMXSPI", symbol: "^OMXSPI" } }, { upsert: true } );
 db.instruments.update( { symbol: "^DJI" }, { $set: { name: "DJI", symbol: "^DJI" } }, { upsert: true } );
 db.instruments.update( { symbol: "^IXIC" }, { $set: { name: "Nasdaq", symbol: "^IXIC" } }, { upsert: true } );
@@ -15,6 +15,6 @@ db.instruments.update( { symbol: "^BSESN" }, { $set: { name: "Bombay", symbol: "
 db.instruments.update( { symbol: "^N100" }, { $set: { name: "Euronext100", symbol: "^N100" } }, { upsert: true } );
 db.instruments.update( { symbol: "^AORD" }, { $set: { name: "Australia", symbol: "^AORD" } }, { upsert: true } );
 
-db.indices.update({ name: "Indices" }, { $set: { "name" : "Indices", "symbols" : [ "^OMXS30", "^OMXSPI", "^DJI", "^IXIC", "^GSPC","^FTSE","^GDAXI","^N225","^HSI","000001.SS","^BSESN","^N100","^AORD" ] } }, { upsert: true } );
+db.indices.update({ name: "Indices" }, { $set: { "name" : "Indices", "symbols" : [ "^OMX", "^OMXSPI", "^DJI", "^IXIC", "^GSPC","^FTSE","^GDAXI","^N225","^HSI","000001.SS","^BSESN","^N100","^AORD" ] } }, { upsert: true } );
 
 
