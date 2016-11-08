@@ -1,5 +1,6 @@
 var assert = require('assert');
 var _ = require('underscore');
+var Promise = require('promise');
 
 module.exports = QuoteLoader;
 
@@ -9,9 +10,11 @@ module.exports = QuoteLoader;
 function QuoteLoader(conf) {
     assert(conf.quoteRepository);
     assert(conf.quoteFetcher);
+    assert(conf.nasdaqQuoteFetcher);
 
     this.quoteRepository = conf.quoteRepository;
     this.quoteFetcher = conf.quoteFetcher;
+    this.nasdaqQuoteFetcher = conf.nasdaqQuoteFetcher;
 };
 
 QuoteLoader.prototype = {
@@ -70,6 +73,24 @@ QuoteLoader.prototype = {
             }.bind(this));
         }, this);
 
+    },
+
+    /**
+     * Fetches and saves daily last and volume from nasdaq.
+     */
+    fetchTodaysQuotesFromNasdaqIndex: function(isin) {
+        return new Promise(function(resolve, reject) {
+
+            this.nasdaqQuoteFetcher.fetchTodaysQuotesForIndex(isin, function(quotes) {
+                console.log('Saving daily quotes for isin: ' + isin);
+
+                this.quoteRepository.saveQuotes(quotes, function(quotes){
+                    console.log('saved quotes for isin ' + isin);
+                    resolve();
+                }.bind(this));
+            }.bind(this));
+
+        }.bind(this));
     }
 
 };

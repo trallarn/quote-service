@@ -5,6 +5,9 @@ var QuoteLoader = require('./QuoteLoader.js');
 var quoteFetcher = require('./QuoteFetcher.js')();
 var mongoFactory = require('./MongoFactory.js')();
 var instrumentRepository = require('./InstrumentRepository.js')(mongoFactory);
+var nasdaqQuoteFetcher = require('./NasdaqQuoteFetcher.js')({
+    instrumentRepository: instrumentRepository
+});
 var quoteRepository = require('./QuoteRepository.js')(mongoFactory);
 var changeRepository = require('./ChangeRepository.js')(quoteRepository, instrumentRepository);
 var instrumentRepository = require('./InstrumentRepository.js')(mongoFactory);
@@ -12,7 +15,8 @@ var quoteSerializer = require('./QuoteSerializer.js');
 
 var quoteLoader = new QuoteLoader({
     quoteRepository: quoteRepository,
-    quoteFetcher: quoteFetcher
+    quoteFetcher: quoteFetcher,
+    nasdaqQuoteFetcher: nasdaqQuoteFetcher
 });
 
 mongoFactory.connect();

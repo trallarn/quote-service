@@ -1,0 +1,15 @@
+<post>
+            <param name="Exchange" value="NMF"/>
+            <param name="SubSystem" value="Prices"/>
+            <param name="Action" value="GetIndexInstruments"/>
+            <param name="inst__a" value="0,1,2,5,37,4,20,21,23,24,33,34,97,129,98,10"/>
+            <param name="ext_xslt" value="/nordicV3/inst_table.xsl"/>
+            <param name="Instrument" value="{isin}"/>
+            <param name="XPath" value="//index//instruments"/>
+            <param name="ext_xslt_lang" value="en"/>
+            <param name="ext_xslt_tableId" value="sharesInIndexTable"/>
+            <param name="ext_xslt_hiddenattrs" value=",lists,tp,hlp,isin,note,"/>
+            <param name="ext_xslt_notlabel" value="nm"/>
+            <param name="ext_xslt_options" value=",noflag,sectoridicon,"/>
+            <param name="app" value="/index/index_info"/>
+            </post>

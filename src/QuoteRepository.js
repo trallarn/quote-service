@@ -94,7 +94,6 @@ QuoteRepository.prototype = {
             quote.date = new Date(quote.date.getTime() - 60000 * quote.date.getTimezoneOffset());
         });
 
-
         this.mongoFactory.getEquityDb(function(db){
 
             var bulk = db.collection('quotesDaily').initializeUnorderedBulkOp();
@@ -102,7 +101,12 @@ QuoteRepository.prototype = {
             _.each(flatQuotes, function(quote) {
                 try {
 
-                    bulk.find({ symbol: quote.symbol, date: quote.date })
+                    var query = {
+                        symbol: quote.symbol,
+                        date: quote.date
+                    };
+
+                    bulk.find(query)
                         .upsert()
                         .updateOne(quote);
 

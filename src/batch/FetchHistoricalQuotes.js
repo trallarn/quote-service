@@ -1,4 +1,4 @@
-    var _ = require('underscore');
+var _ = require('underscore');
 var QuoteLoader = require('../QuoteLoader.js');
 var quoteFetcher = require('../QuoteFetcher.js')();
 var mongoFactory = require('../MongoFactory.js')({env: 'dev'});
