@@ -4,10 +4,14 @@ var quoteFetcher = require('../QuoteFetcher.js')();
 var mongoFactory = require('../MongoFactory.js')({env: 'dev'});
 var quoteRepository = require('../QuoteRepository.js')(mongoFactory);
 var instrumentRepository = require('../InstrumentRepository.js')(mongoFactory);
+var nasdaqQuoteFetcher = require('../NasdaqQuoteFetcher.js')({ 
+    instrumentRepository: instrumentRepository 
+});
 
 var quoteLoader = new QuoteLoader({
     quoteRepository: quoteRepository,
-    quoteFetcher: quoteFetcher
+    quoteFetcher: quoteFetcher,
+    nasdaqQuoteFetcher: nasdaqQuoteFetcher
 });
 
 /**
