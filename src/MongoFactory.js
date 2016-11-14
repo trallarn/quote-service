@@ -1,3 +1,4 @@
+var Promise = require('promise');
 var MongoClient = require('mongodb').MongoClient
   , assert = require('assert');
 var db = false;
@@ -36,10 +37,20 @@ module.exports = function(conf) {
         },
 
         getEquityDb: function(callback) {
-            if(!db) {
-                connectToDb(env, callback);
+            var promise = new Promise(function(fullfill, reject) {
+                fullfill = callback || fullfill;
+
+                if(!db) {
+                    connectToDb(env, fullfill);
+                } else {
+                    fullfill(db);
+                }
+            });
+
+            if(callback) {
+                promise.then(); // start
             } else {
-                callback(db);
+                return promise;
             }
         },
 

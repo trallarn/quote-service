@@ -1,5 +1,7 @@
 var express = require('express');
 var assert = require('assert');
+var cors = require('cors');
+var bodyParser = require('body-parser');
 
 var QuoteLoader = require('./QuoteLoader.js');
 var quoteFetcher = require('./QuoteFetcher.js')();
@@ -11,6 +13,7 @@ var nasdaqQuoteFetcher = require('./NasdaqQuoteFetcher.js')({
 var quoteRepository = require('./QuoteRepository.js')(mongoFactory);
 var changeRepository = require('./ChangeRepository.js')(quoteRepository, instrumentRepository);
 var instrumentRepository = require('./InstrumentRepository.js')(mongoFactory);
+var favoritesRepository = require('./FavoritesRepository.js')(mongoFactory);
 var quoteSerializer = require('./QuoteSerializer.js');
 
 var quoteLoader = new QuoteLoader({
@@ -23,8 +26,22 @@ mongoFactory.connect();
 
 assert(quoteRepository, 'quote repo must exist');
 
-
 var app = express();
+app.options('*', cors());
+app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+
+app.post('/favorites', cors(), function (req, res) {
+    favoritesRepository.saveGroup(req.body)
+        .then(function(result) {
+            console.dir(result);
+
+            res.status(201).json(result);
+        })
+        .catch(function(e){
+            console.error('save favorites failed ' + e);
+            res.sendStatus(500)
+        });
+});
 
 /**
  * Fetches all instruments.
