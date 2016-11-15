@@ -6,6 +6,7 @@
   "dependencies": {
     "body-parser": "^1.15.2",
     "cheerio": "^0.20.0",
+    "cookie-parser": "^1.4.3",
     "cors": "^2.8.1",
     "csv": "^0.4.6",
     "express": "^4.13.4",

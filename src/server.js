@@ -1,8 +1,12 @@
 var express = require('express');
 var assert = require('assert');
+
+// Express middleware
 var cors = require('cors');
 var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser')
 
+var UserService = require('./service/UserService.js');
 var QuoteLoader = require('./QuoteLoader.js');
 var quoteFetcher = require('./QuoteFetcher.js')();
 var mongoFactory = require('./MongoFactory.js')();
@@ -22,16 +26,38 @@ var quoteLoader = new QuoteLoader({
     nasdaqQuoteFetcher: nasdaqQuoteFetcher
 });
 
+var userService = new UserService();
+
 mongoFactory.connect();
 
 assert(quoteRepository, 'quote repo must exist');
 
-var app = express();
-app.options('*', cors());
-app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+var corsOptions = {
+    origin: true,
+    methods: ['GET','POST','DELETE','OPTIONS'],
+    credentials: true
+};
 
-app.post('/favorites', cors(), function (req, res) {
-    favoritesRepository.saveGroup(req.body)
+var app = express();
+app.options('*', cors(corsOptions));
+app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+app.use(cookieParser())
+
+app.post('/user/login', cors(corsOptions), function (req, res) {
+    if(!userService.login(res, req.body.username)) {
+        res.status(400).send('Username must not be empty');
+    } else {
+        res.end();
+    }
+});
+
+app.post('/favorites', cors(corsOptions), function (req, res) {
+    if(!userService.isLoggedIn(req)) {
+        res.sendStatus(401);
+        return;
+    }
+
+    favoritesRepository.saveGroup(req.body, userService.getUsername(req))
         .then(function(result) {
             console.dir(result);
 
@@ -40,6 +66,46 @@ app.post('/favorites', cors(), function (req, res) {
         .catch(function(e){
             console.error('save favorites failed ' + e);
             res.sendStatus(500)
+        });
+});
+
+app.get('/favorites', cors(corsOptions), function (req, res) {
+    if(!userService.isLoggedIn(req)) {
+        res.sendStatus(401);
+        return;
+    }
+
+    favoritesRepository.getFavorites(userService.getUsername(req))
+        .then(function(result) {
+            console.dir(result);
+            res.json(result);
+        })
+        .catch(function(e){
+            console.error('get favorites failed ' + e);
+            res.sendStatus(500);
+        });
+});
+
+app.delete('/favorites/:id', cors(corsOptions), function (req, res) {
+    if(!userService.isLoggedIn(req)) {
+        res.sendStatus(401);
+        return;
+    }
+
+    var id = req.params.id;
+
+    if(!id) {
+        res.status(400).send('Bad id');
+        return;
+    }
+
+    favoritesRepository.deleteGroup(userService.getUsername(req), id)
+        .then(function(result) {
+            res.end();
+        })
+        .catch(function(e){
+            console.error('delete favorites failed ' + e);
+            res.sendStatus(500);
         });
 });
 
