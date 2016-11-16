@@ -16,7 +16,30 @@ function FavoritesRepository(mongoFactory) {
 
 FavoritesRepository.prototype = {
 
-    saveGroup: function(group, username) {
+    updateGroup: function(group, username) {
+        if(!username) {
+            throw 'Must supply username';
+        }
+
+        return this.mongoFactory.getEquityDb()
+            .then(function(db){
+                console.log('updating favorites group: ' + group.name);
+
+                var record = {
+                    owner: username,
+                    group: group,
+                    _id: new mongodb.ObjectID(group.id)
+                };
+
+                // Add id
+                //record._id = new mongodb.ObjectID(group.id);
+                delete group.id;
+
+                return db.collection('favorites').updateOne({ _id: record._id }, { $set: record });
+            });
+    },
+
+    insertGroup: function(group, username) {
         if(!username) {
             throw 'Must supply username';
         }

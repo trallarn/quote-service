@@ -34,7 +34,7 @@ assert(quoteRepository, 'quote repo must exist');
 
 var corsOptions = {
     origin: true,
-    methods: ['GET','POST','DELETE','OPTIONS'],
+    methods: ['GET','POST','PUT','DELETE','OPTIONS'],
     credentials: true
 };
 
@@ -57,7 +57,7 @@ app.post('/favorites', cors(corsOptions), function (req, res) {
         return;
     }
 
-    favoritesRepository.saveGroup(req.body, userService.getUsername(req))
+    favoritesRepository.insertGroup(req.body, userService.getUsername(req))
         .then(function(result) {
             console.dir(result);
 
@@ -65,6 +65,24 @@ app.post('/favorites', cors(corsOptions), function (req, res) {
         })
         .catch(function(e){
             console.error('save favorites failed ' + e);
+            res.sendStatus(500)
+        });
+});
+
+app.put('/favorites', cors(corsOptions), function (req, res) {
+    if(!userService.isLoggedIn(req)) {
+        res.sendStatus(401);
+        return;
+    }
+
+    favoritesRepository.updateGroup(req.body, userService.getUsername(req))
+        .then(function(result) {
+            console.error('updated favorites ok ');
+            //console.log(result);
+            res.status(201).json(result);
+        })
+        .catch(function(e){
+            console.error('update favorites failed ' + e);
             res.sendStatus(500)
         });
 });
@@ -112,10 +130,18 @@ app.delete('/favorites/:id', cors(corsOptions), function (req, res) {
 /**
  * Fetches all instruments.
  */
-app.get('/instruments', function (req, res) {
-    instrumentRepository.getInstruments(function(instruments){
-        res.jsonp(instruments);
-    });
+app.get('/instruments', cors(corsOptions), function (req, res) {
+    var symbols = req.query.symbols;
+
+    if(symbols) {
+        instrumentRepository.getInstrumentsBySymbols(symbols, function(instruments){
+            res.jsonp(instruments);
+        });
+    } else {
+        instrumentRepository.getInstruments(function(instruments){
+            res.jsonp(instruments);
+        });
+    }
 });
 
 /**
