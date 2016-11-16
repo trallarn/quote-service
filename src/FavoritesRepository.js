@@ -25,17 +25,18 @@ FavoritesRepository.prototype = {
             .then(function(db){
                 console.log('updating favorites group: ' + group.name);
 
+                var id = new mongodb.ObjectID(group.id);
+
                 var record = {
                     owner: username,
-                    group: group,
-                    _id: new mongodb.ObjectID(group.id)
+                    group: group
                 };
 
                 // Add id
                 //record._id = new mongodb.ObjectID(group.id);
                 delete group.id;
 
-                return db.collection('favorites').updateOne({ _id: record._id }, { $set: record });
+                return db.collection('favorites').updateOne({ _id: id }, { $set: record });
             });
     },
 
