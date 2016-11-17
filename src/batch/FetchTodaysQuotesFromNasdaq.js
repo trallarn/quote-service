@@ -1,5 +1,6 @@
 /**
  * Fetches current last quote and volume from nasdaq page.
+ * Eg. http://www.nasdaqomxnordic.com/index/index_info?Instrument=SE0001775891
  */
 var _ = require('underscore');
 var Promise = require('promise');
