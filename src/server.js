@@ -20,6 +20,9 @@ var instrumentRepository = require('./InstrumentRepository.js')(mongoFactory);
 var favoritesRepository = require('./FavoritesRepository.js')(mongoFactory);
 var quoteSerializer = require('./QuoteSerializer.js');
 
+var SeriesAnalysis = require('./service/SeriesAnalysis.js');
+var seriesAnalysis = new SeriesAnalysis(quoteRepository);
+
 var quoteLoader = new QuoteLoader({
     quoteRepository: quoteRepository,
     quoteFetcher: quoteFetcher,
@@ -206,6 +209,20 @@ app.get('/daily/:symbol', function (req, res) {
         getQuotesAndWrite();
     }
 
+});
+
+app.get('/seriesAnalysis/extremas/:symbol', function (req, res) {
+    var from = new Date(req.query.from || new Date(1900,1,1));
+    var to = new Date(req.query.to || new Date());
+
+    seriesAnalysis.getExtremas(req.params.symbol, from, to)
+        .then(function(extremas) {
+            res.jsonp(extremas);
+        })
+        .catch(function(e){
+            console.error('/seriesAnalysis/extremas ' + e);
+            res.sendStatus(500)
+        });
 });
 
 /**

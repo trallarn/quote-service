@@ -35,13 +35,25 @@ QuoteRepository.prototype = {
     getAsync: function(symbol, from, to, callback) {
         var query = this._buildQuery(symbol, from, to);
 
-        this.mongoFactory.getEquityDb(function(db) {
-            var cursor = db.collection('quotesDaily').find(query).sort( { date: 1 } );
+        var promise = new Promise(function(resolve, reject) {
+            resolve = callback || resolve;
 
-            cursor.toArray().then(function(items) {
-                callback(items);
+            this.mongoFactory.getEquityDb(function(db) {
+                var cursor = db.collection('quotesDaily').find(query).sort( { date: 1 } );
+
+                cursor.toArray().then(function(items) {
+                    resolve(items);
+                });
             });
-        });
+
+        }.bind(this));
+
+        if(callback) {
+            promise.then();
+        } else {
+            return promise;
+        }
+
     },
 
     flattenQuotes: function(quotes) {
