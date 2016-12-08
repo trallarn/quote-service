@@ -14,18 +14,13 @@ SeriesAnalysis.prototype = {
      * @return Promise
      */
     getExtremas: function(symbol, from, to, epsilon) {
-        var fromMillis = from.getTime();
-        var toMillis = to.getTime();
-
         return this.quoteRepository.getAsync(symbol, from, to)
             .then(function(quotes) {
-                return _.filter(quotes, function(quote) { 
-                    var time = quote.date.getTime();
-                    return time >= fromMillis && time <= toMillis;
-                });
-            })
-            .then(function(quotes) {
-                return Series.getExtremas(_.pluck(quotes, 'close'), epsilon);
+                try {
+                    return Series.getExtremas(_.pluck(quotes, 'close'), _.map(quotes, function(val) { return val.date.getTime(); } ), epsilon);
+                } catch (e) {
+                    return Promise.reject(e);
+                }
             });
     }
 

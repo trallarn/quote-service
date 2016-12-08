@@ -42,7 +42,7 @@ var corsOptions = {
 };
 
 var app = express();
-app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 app.use(cookieParser())
 
@@ -212,16 +212,17 @@ app.get('/daily/:symbol', function (req, res) {
 });
 
 app.get('/seriesAnalysis/extremas/:symbol', function (req, res) {
-    var from = new Date(req.query.from || new Date(1900,1,1));
-    var to = new Date(req.query.to || new Date());
+    var from = !isNaN(req.query.from) ? new Date(Number(req.query.from)) : new Date(1900,1,1);
+    var to = !isNaN(req.query.to) ? new Date(Number(req.query.to)) : new Date();
+    var epsilon = req.query.epsilon;
 
-    seriesAnalysis.getExtremas(req.params.symbol, from, to)
+    seriesAnalysis.getExtremas(req.params.symbol, from, to, epsilon)
         .then(function(extremas) {
             res.jsonp(extremas);
         })
         .catch(function(e){
             console.error('/seriesAnalysis/extremas ' + e);
-            res.sendStatus(500)
+            res.status(500).send(e);
         });
 });
 
