@@ -7,13 +7,7 @@ var Series = function() {
 
 Series.prototype = {
 
-    /**
-     * @param epsilonRel as part of last close, eg 0.05 for 5 percent
-     */
-    getExtremas: function(ys, xs, epsilonRel) {
-        if(_.isUndefined(epsilonRel)) {
-            throw 'Must supply epsilon';
-        }
+    getAllExtremas: function(ys, xs) {
 
         var temp = {
             maxY: [],
@@ -22,12 +16,10 @@ Series.prototype = {
             minX: []
         };
 
-        var epsilon = _.last(ys) * epsilonRel;
-
-        // Continue here. How long should the extrema dominate?
+        // How long should the extrema dominate?
         var dominationPeriod = 1;
 
-        for (var i = ys.length - dominationPeriod - 1; i >= dominationPeriod; i--) {
+        for (var i = dominationPeriod; i < ys.length - dominationPeriod; i++) {
             var aBefore = ys[i-dominationPeriod];
             var aLater = ys[i+dominationPeriod];
             var aNow = ys[i];
@@ -41,6 +33,63 @@ Series.prototype = {
             }
         } 
 
+        temp.maxX = _.map(temp.maxX, function(x) { return xs[x]; });
+        temp.minX = _.map(temp.minX, function(x) { return xs[x]; });
+        return temp;
+    },
+
+    /**
+     * @param degree 0 means all stationary points, 1 means find extremes of stationary points, 2 etc.
+     */
+    getExtremasOfDegree: function(ys, xs, degree) {
+        degree = degree || 0;
+
+        var all = this.getAllExtremas(ys, xs);
+        //console.dir(all);
+
+        for (var i = 0; i < degree; i++) {
+            var maxs = this.getAllExtremas(all.maxY, all.maxX);
+            var mins = this.getAllExtremas(all.minY, all.minX);
+            all.maxX = maxs.maxX;
+            all.maxY = maxs.maxY;
+            all.minX = mins.minX;
+            all.minY = mins.minY;
+            //console.dir(all);
+        }
+
+        return all;
+    },
+    
+    /**
+     * @param epsilonRel as part of last close, eg 0.05 for 5 percent
+     */
+    getExtremas: function(ys, xs, epsilonRel) {
+        var temp = this.getAllExtremas(ys, xs);
+
+        var startsWithBottom = temp.minX[0] < temp.maxX[0];
+
+        var maxX2 = [];
+
+        var maxY2 = _.chain(temp.maxY)
+            .map(function(y, i) {
+                var diff = y * epsilonRel;
+                var bBefore, bAfter;
+
+                if(startsWithBottom) {
+                    bBefore = temp.minY[i];
+                    bAfter  = temp.minY[i + 1];
+                } else {
+                    bBefore = temp.minY[i - 1];
+                    bAfter  = temp.minY[i];
+                }
+
+                return (Math.abs(y - bBefore) > diff) && (Math.abs(y - bAfter) > diff) ? y : null;
+            })
+            .filter(function(y){
+                return y !== null;
+            })
+            .value();
+        
         var result = {
             maxY: [],
             minY: [],
@@ -48,37 +97,41 @@ Series.prototype = {
             minX: []
         };
 
-        var reduceWithEpsilon = function(xValues) {
-            var resultArray = [];
-
-            var findWithinEpsilon = function(existingXs, x) {
-                return _.find(existingXs, function(existingX) {
-                    return Math.abs(ys[existingX] - ys[x]) <= epsilon;
-                });
-            };
-
-            _.each(xValues, function(x) {
-                var existsWithinEpsilon = findWithinEpsilon(resultArray, x);
-
-                if(!existsWithinEpsilon) {
-                    resultArray.push(x);
-                }
-
-            });
-
-            return resultArray;
-        };
-
 console.dir(temp);
 
-        var reducedMaxX = reduceWithEpsilon(temp.maxX);
-        var reducedMinX = reduceWithEpsilon(temp.minX);
-        result.maxX = _.map(reducedMaxX, function(x) { return xs[x]; });
+        //var reducedMaxX = this._reduceWithEpsilon(temp.maxX, ys, epsilon);
+        //var reducedMinX = this._reduceWithEpsilon(temp.minX, ys, epsilon);
+        //result.maxX = _.map(reducedMaxX, function(x) { return xs[x]; });
+        //result.minX = _.map(reducedMinX, function(x) { return xs[x]; });
+        //result.maxY = _.map(reducedMaxX, function(x) { return ys[x]; } );
+        //result.minY = _.map(reducedMinX, function(x) { return ys[x]; } );
+        result.maxX = _.map(maxY2, function(x) { return xs[x]; });
         result.minX = _.map(reducedMinX, function(x) { return xs[x]; });
         result.maxY = _.map(reducedMaxX, function(x) { return ys[x]; } );
         result.minY = _.map(reducedMinX, function(x) { return ys[x]; } );
 
         return result;
+    },
+
+    _reduceWithEpsilon: function(xValues, ys, epsilon) {
+        var resultArray = [];
+
+        var findWithinEpsilon = function(existingXs, x) {
+            return _.find(existingXs, function(existingX) {
+                return Math.abs(ys[existingX] - ys[x]) <= epsilon;
+            });
+        };
+
+        _.each(xValues, function(x) {
+            var existsWithinEpsilon = findWithinEpsilon(resultArray, x);
+
+            if(!existsWithinEpsilon) {
+                resultArray.push(x);
+            }
+
+        });
+
+        return resultArray;
     },
 
     getExtremasWithDiff: function(values, epsilon) {

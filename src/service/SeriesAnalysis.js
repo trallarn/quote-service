@@ -1,5 +1,6 @@
 var Promise = require('promise');
 var _ = require('underscore');
+var quoteSerializer = require('../QuoteSerializer.js');
 
 var Series = require('../math/Series.js');
 
@@ -17,7 +18,8 @@ SeriesAnalysis.prototype = {
         return this.quoteRepository.getAsync(symbol, from, to)
             .then(function(quotes) {
                 try {
-                    return Series.getExtremas(_.pluck(quotes, 'close'), _.map(quotes, function(val) { return val.date.getTime(); } ), epsilon);
+                    var extremes = Series.getExtremasOfDegree(_.pluck(quotes, 'close'), _.map(quotes, function(val) { return val.date.getTime(); } ), epsilon);
+                    return quoteSerializer.extremesToLine(extremes);
                 } catch (e) {
                     return Promise.reject(e);
                 }

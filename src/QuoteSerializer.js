@@ -17,6 +17,30 @@ var quoteSerializer = {
         return payload;
     },
 
+    extremesToLine: function(extremes) {
+        var maxs = [];
+        var mins = [];
+
+        for(var i = 0; i < extremes.maxX.length; i++) {
+            maxs.push([
+                extremes.maxX[i],
+                extremes.maxY[i]
+            ]);
+        }
+
+        for(var i = 0; i < extremes.minX.length; i++) {
+            mins.push([
+                extremes.minX[i],
+                extremes.minY[i]
+            ]);
+        }
+
+        return {
+            maxs: maxs,
+            mins: mins
+        };
+    },
+
     mongoToHighstockLine: function(symbol, data) {
         var quotes = _.map(data, function(quote) {
             return {
