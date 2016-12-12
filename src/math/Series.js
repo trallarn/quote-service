@@ -19,15 +19,15 @@ Series.prototype = {
         // How long should the extrema dominate?
         var dominationPeriod = 1;
 
-        for (var i = dominationPeriod; i < ys.length - dominationPeriod; i++) {
-            var aBefore = ys[i-dominationPeriod];
-            var aLater = ys[i+dominationPeriod];
+        for (var i = 0; i < ys.length; i++) {
+            var aBefore = (i - dominationPeriod) >= 0 ? ys[i-dominationPeriod] : false;
+            var aLater = (i + dominationPeriod) < ys.length ? ys[i+dominationPeriod] : false;
             var aNow = ys[i];
 
-            if (aBefore < aNow && aNow > aLater){
+            if ((!aBefore || aBefore <= aNow) && (!aLater || aNow > aLater)){
                 temp.maxY.push(aNow);
                 temp.maxX.push(i);
-            } else if(aBefore > aNow && aNow < aLater) {
+            } else if((!aBefore || aBefore >= aNow) && (!aLater || aNow < aLater)) {
                 temp.minY.push(aNow);
                 temp.minX.push(i);
             }
