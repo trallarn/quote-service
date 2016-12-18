@@ -10,15 +10,38 @@ var SeriesAnalysis = function(quoteRepository) {
 
 SeriesAnalysis.prototype = {
 
+    _getClosings: function(quotes) {
+        return _.pluck(quotes, 'close');
+    },
+
+    _getDates: function(quotes) {
+        return _.map(quotes, function(val) { 
+            return val.date.getTime(); 
+        });
+    },
+
+    getExtremasTTL: function(symbol, from, to, ttls) {
+        return this.quoteRepository.getAsync(symbol, from, to)
+            .then(function(quotes) {
+                try {
+                    var extremes = Series.getExtremasTTL(this._getClosings(quotes), this._getDates(quotes), ttls);
+
+                    return quoteSerializer.extremesTTLToLines(extremes);
+                } catch (e) {
+                    return Promise.reject(e);
+                }
+            }.bind(this));
+    },
+
     /**
      * Gets min max extremas.
      * @return Promise
      */
-    getExtremas: function(symbol, from, to, epsilon) {
+    getExtremasOfDegree: function(symbol, from, to, epsilon) {
         return this.quoteRepository.getAsync(symbol, from, to)
             .then(function(quotes) {
                 try {
-                    var extremes = Series.getExtremasOfDegree(_.pluck(quotes, 'close'), _.map(quotes, function(val) { return val.date.getTime(); } ), epsilon);
+                    var extremes = Series.getExtremasOfDegree(this._getClosings(quotes), this._getDates(quotes), epsilon);
                     return quoteSerializer.extremesToLine(extremes);
                 } catch (e) {
                     return Promise.reject(e);

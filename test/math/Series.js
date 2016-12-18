@@ -2,26 +2,84 @@ var test = require('tape');
 var Series = require('../../src/math/Series.js');
 var _ = require('underscore');
 
+
+var testGetExtremasTTL = function(t, params) {
+    t.plan(4);
+
+    // Run tests from params
+    var ys = params.ys;
+    var xs = _.range(ys.length);
+
+    var ttls = [params.expected.ttl];
+    var extremas = Series.getExtremasTTL(ys, xs, ttls);
+    var expected = params.expected;
+    //console.dir(extremas);
+
+    t.deepEqual(extremas[0].maxY, expected.maxY, 'max ys');
+    t.deepEqual(extremas[0].maxX, expected.maxX, 'max xs');
+    t.deepEqual(extremas[0].minY, expected.minY, 'min ys');
+    t.deepEqual(extremas[0].minX, expected.minX, 'min xs');
+};
+
+test('getExtremasTTL ttl 1', function(t) {
+    testGetExtremasTTL(t, {
+        ys: [ 10, 20, 12, 30, 15, 25, 5, 40, 35, 50 ],
+        expected: {
+            ttl: 1,
+            maxY: [20,30,25,40],
+            maxX: [1,3,5,7],
+            minY: [12,15,5,35],
+            minX: [2,4,6,8]
+        }
+    });
+});
+
+test('getExtremasTTL ttl 3', function(t) {
+    testGetExtremasTTL(t, {
+            ys: [ 10, 20, 12, 30, 15, 25, 5, 40, 35, 50 ],
+            expected: {
+                ttl: 3,
+                maxY: [30],
+                maxX: [3],
+                minY: [5],
+                minX: [6]
+            }
+        });
+});
+
+test('getExtremasTTL ttl 100', function(t) {
+    testGetExtremasTTL(t, {
+        ys: [ 10, 20, 12, 30, 15, 25, 5, 40, 35, 50 ],
+        expected: {
+            ttl: 100,
+            maxY: [],
+            maxX: [],
+            minY: [5],
+            minX: [6]
+        }
+    });
+});
+
 test('getExtremasOfDegree', function(t) {
     var params = [
         {
             ys: [ 10, 20, 12, 30, 15, 25, 5, 40, 35, 50 ],
             degree: 0,
             expected: {
-                maxY: [20,30,25,40],
-                maxX: [1,3,5,7],
-                minY: [12,15,5,35],
-                minX: [2,4,6,8]
+                maxY: [20,30,25,40,50],
+                maxX: [1,3,5,7,9],
+                minY: [10,12,15,5,35],
+                minX: [0,2,4,6,8]
             }
         }
         , {
             ys: [ 10, 20, 12, 30, 15, 25, 5, 40, 35, 50 ],
             degree: 1,
             expected: {
-                maxY: [30],
-                maxX: [3],
-                minY: [5],
-                minX: [6]
+                maxY: [30,50],
+                maxX: [3,9],
+                minY: [10,5],
+                minX: [0,6]
             }
         }
     ];

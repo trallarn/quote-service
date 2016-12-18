@@ -215,8 +215,9 @@ app.get('/seriesAnalysis/extremas/:symbol', function (req, res) {
     var from = !isNaN(req.query.from) ? new Date(Number(req.query.from)) : new Date(1900,1,1);
     var to = !isNaN(req.query.to) ? new Date(Number(req.query.to)) : new Date();
     var epsilon = req.query.epsilon;
+    var ttls = req.query.ttls;
 
-    seriesAnalysis.getExtremas(req.params.symbol, from, to, epsilon)
+    seriesAnalysis.getExtremasTTL(req.params.symbol, from, to, ttls ? ttls.split(',') : epsilon)
         .then(function(extremas) {
             res.jsonp(extremas);
         })

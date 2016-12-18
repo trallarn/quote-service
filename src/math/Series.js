@@ -38,6 +38,77 @@ Series.prototype = {
         return temp;
     },
 
+    _getForIndexes: function(values, indexes) {
+        return _.map(indexes, function(i) { return values[i]; });
+    },
+
+    /**
+     * Gets local min max defined by the time it remains an extreme.
+     * @param ttls [ttl1, ttl2, ...] time to live for an extreme
+     */
+    getExtremasTTL: function(ys, xs, ttls) {
+        ttls = ttls || [100];
+
+        ttls = _.map(ttls, Number);
+
+        var getTtlDataModel = function() {
+            return {
+                ttl: false,
+                maxY: [],
+                minY: [],
+                maxX: [],
+                minX: []
+            };
+        };
+
+        var temp = [];
+
+        // Create result object
+        _.each(ttls, function(ttl) { 
+            temp.push(_.extend(getTtlDataModel(), { ttl: ttl } )); 
+        });
+
+        for (var i = 1; i < ys.length - 1; i++) {
+            for(var j = 0; j < ttls.length; j++) {
+                var ttl = ttls[j];
+                var curTemp = temp[j];
+
+                var xBefore = i - ttl;
+                var xLater = i + ttl;
+                var aNow = ys[i];
+                var from = Math.max(0, xBefore);
+                var to = Math.min(ys.length, xLater + 1);
+
+                var ysInterval = ys.slice(from, to);
+
+                var isMax = !_.find(ysInterval, function(comp) {
+                    return comp > aNow;
+                });
+
+                if(isMax) {
+                    curTemp.maxY.push(aNow);
+                    curTemp.maxX.push(i);
+                } else {
+                    var isMin = !_.find(ysInterval, function(comp) {
+                        return comp < aNow;
+                    });
+
+                    if(isMin) {
+                        curTemp.minY.push(aNow);
+                        curTemp.minX.push(i);
+                    }
+                }
+            }
+        } 
+
+        _.each(temp, function(curTemp) {
+            curTemp.maxX = this._getForIndexes(xs, curTemp.maxX);
+            curTemp.minX = this._getForIndexes(xs, curTemp.minX);
+        }, this);
+
+        return temp;
+    },
+
     /**
      * @param degree 0 means all stationary points, 1 means find extremes of stationary points, 2 etc.
      */

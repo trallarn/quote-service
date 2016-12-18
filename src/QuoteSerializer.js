@@ -17,6 +17,14 @@ var quoteSerializer = {
         return payload;
     },
 
+    extremesTTLToLines: function(extremes) {
+        return _.map(extremes, function(extreme) {
+            var line = this.extremesToLine(extreme);
+            line.ttl = extreme.ttl;
+            return line;
+        }, this);
+    },
+
     extremesToLine: function(extremes) {
         var maxs = [];
         var mins = [];
