@@ -1,7 +1,7 @@
 var test = require('tape');
 
-var mongoFactory = require('../src/MongoFactory.js')();
-var instrumentRepository = require('../src/InstrumentRepository.js')(mongoFactory);
+var mongoFactory = require('../../src/MongoFactory.js')();
+var instrumentRepository = require('../../src/InstrumentRepository.js')(mongoFactory);
 
 test.onFinish(function(){
     // Close db

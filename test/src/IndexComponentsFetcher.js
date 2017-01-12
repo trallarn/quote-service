@@ -1,6 +1,6 @@
 var test = require('tape');
 var fs = require('fs');
-var IndexComponentsFetcher = require('../src/index/IndexComponentsFetcher.js');
+var IndexComponentsFetcher = require('../../src/index/IndexComponentsFetcher.js');
 
 test('parse components', function(t) {
     var fetcher = new IndexComponentsFetcher();

@@ -1,5 +1,5 @@
 var test = require('tape');
-var Series = require('../../src/math/Series.js');
+var Series = require('../../../src/math/Series.js');
 var _ = require('underscore');
 
 

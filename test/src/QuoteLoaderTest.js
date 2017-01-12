@@ -1,12 +1,12 @@
 var test = require('tape');
-var QuoteLoader = require('../src/QuoteLoader.js');
-var quoteFetcher = require('../src/QuoteFetcher.js')();
-var instrumentRepository = require('../src/InstrumentRepository');
-var mongoFactory = require('../src/MongoFactory.js')({env: 'dev'});
-var quoteRepository = require('../src/QuoteRepository.js')(mongoFactory);
-var testConf = require('./TestConf');
+var QuoteLoader = require('../../src/QuoteLoader.js');
+var quoteFetcher = require('../../src/QuoteFetcher.js')();
+var instrumentRepository = require('../../src/InstrumentRepository');
+var mongoFactory = require('../../src/MongoFactory.js')({env: 'dev'});
+var quoteRepository = require('../../src/QuoteRepository.js')(mongoFactory);
+var testConf = require('../TestConf');
 
-var nasdaqQuoteFetcher = require('../src/NasdaqQuoteFetcher.js')({
+var nasdaqQuoteFetcher = require('../../src/NasdaqQuoteFetcher.js')({
     instrumentRepository: instrumentRepository
 });
 
