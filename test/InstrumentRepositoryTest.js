@@ -11,26 +11,29 @@ test.onFinish(function(){
 test('getInstruments', function(t) {
     t.plan(1);
 
-    instrumentRepository.getInstruments(function(instruments) {
-        t.ok(instruments.length > 0, 'instruments no empty');
-    });
+    instrumentRepository.getInstruments()
+        .then(function(instruments) {
+            t.ok(instruments.length > 0, 'instruments no empty');
+        });
 
 });
 
 test('getIndexComponents with stockholm', function(t) {
     t.plan(1);
 
-    instrumentRepository.getIndexComponents('stockholm', function(components) {
-        t.ok(components.length > 0, 'components not empty');
-    });
+    instrumentRepository.getIndexComponents('stockholm')
+        .then(function(components) {
+            t.ok(components.length > 0, 'components not empty');
+        });
 
 });
 
 test('getIndexComponents with indices', function(t) {
     t.plan(1);
 
-    instrumentRepository.getIndexComponents('Indices', function(components) {
-        t.ok(components.length > 0, 'components not empty');
-    });
+    instrumentRepository.getIndexComponents('Indices')
+        .then(function(components) {
+            t.ok(components.length > 0, 'components not empty');
+        });
 
 });

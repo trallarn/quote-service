@@ -91,8 +91,13 @@ _.extend(InstrumentRepository.prototype, {
     },
 
     getInstruments: function(callback) {
-        this.getCollection('instruments')
-            .then(callback);
+        var promise = this.getCollection('instruments');
+
+        if(callback) {
+            promise.then(callback);
+        }
+
+        return promise;
     },
 
     /**
