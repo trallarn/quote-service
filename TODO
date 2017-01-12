@@ -1,4 +1,11 @@
-Datat ser knasigt ut i grafen för många dataserier
+Korrigera för splittar
+För att hämta splittar:
+
+Eg. Astrazeneca
+http://ichart.finance.yahoo.com/x?s=AZN.ST&a=00&b=2&c=2014&d=04&e=25&f=2016&g=v
+
+
+Multiplicera exvis valuta med kurs.
 
 
 KURSER
