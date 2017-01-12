@@ -11,8 +11,8 @@ test.onFinish(function(){
 test('getAsync', function(t) {
     t.plan(1);
 
-    //quoteRepository.getAsync('ERIC');
-    quoteRepository.getAsync('ERIC', false, false, function(quotes) {
-        t.ok(quotes.length > 0, 'quotes no empty');
-    });
+    quoteRepository.getAsync('ERIC-B.ST', false, false)
+        .then(function(quotes) {
+            t.ok(quotes.length > 0, 'quotes no empty');
+        });
 });

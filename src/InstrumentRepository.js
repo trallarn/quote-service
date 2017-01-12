@@ -73,18 +73,26 @@ _.extend(InstrumentRepository.prototype, {
         });
     },
 
-    getIndexComponents: function(indexName, callback) {
-        this.getOne('indices', { name: indexName }, function(index) {
-            if(!index) {
-                throw 'Invalid index: "' + indexName + '"';
-            }
+    /**
+     * @return promise
+     */
+    getIndexComponents: function(indexName) {
 
-            this.getCollection('instruments', callback, { symbol: { $in: index.symbols } }, { name: 1 });
-        }.bind(this))
+        return this.getOne('indices', { name: indexName })
+            .then(function(index) {
+                if(!index) {
+                    throw 'Invalid index: "' + indexName + '"';
+                }
+
+                return this.getCollection('instruments', { symbol: { $in: index.symbols } }, { name: 1 });
+
+            }.bind(this));
+
     },
 
     getInstruments: function(callback) {
-        this.getCollection('instruments', callback);
+        this.getCollection('instruments')
+            .then(callback);
     },
 
     /**
@@ -95,7 +103,8 @@ _.extend(InstrumentRepository.prototype, {
             throw 'names must be an array';
         }
 
-        this.getCollection('instruments', callback, { name: { $in: names } } );
+        this.getCollection('instruments', { name: { $in: names } } )
+            .then(callback);
     },
 
     /**
@@ -106,7 +115,8 @@ _.extend(InstrumentRepository.prototype, {
             throw 'Symbols must be an array';
         }
 
-        this.getCollection('instruments', callback, { symbol: { $in: symbols } } );
+        this.getCollection('instruments', { symbol: { $in: symbols } } )
+            .then(callback);
     },
 
     getInstrument: function(symbol, callback) {
@@ -114,7 +124,8 @@ _.extend(InstrumentRepository.prototype, {
     },
 
     getIndices: function(callback) {
-        this.getCollection('indices', callback, {}, { name: 1 } );
+        this.getCollection('indices', {}, { name: 1 } )
+            .then(callback);
     },
 
     getIndex: function(name, callback) {
@@ -122,33 +133,37 @@ _.extend(InstrumentRepository.prototype, {
     },
 
     getOne: function(collectionName, query, callback) {
-        this.mongoFactory.getEquityDb(function(db){
-            var cursor = db.collection(collectionName).findOne(query, function(err, item) {
-                if(err) {
-                    throw 'Error caught: ' + JSON.stringify(err);
-                }
+        var promise = this.mongoFactory.getEquityDb()
+            .then(function(db){
+                return db.collection(collectionName).findOne(query);
+            })
+            .catch(function(err) {
+                console.error(err);
+            });
 
+        if(callback) {
+            promise.then(function(item) {
                 callback(item);
             });
-        });
+        } else {
+            return promise;
+        }
     },
 
-    getCollection: function(collectionName, callback, query, sortParams) {
-        this.mongoFactory.getEquityDb(function(db){
-            var cursor = db.collection(collectionName).find(query);
+    /**
+     * @return promise
+     */
+    getCollection: function(collectionName, query, sortParams) {
+        return this.mongoFactory.getEquityDb()
+            .then(function(db){
+                var cursor = db.collection(collectionName).find(query);
 
-            if(sortParams) {
-                cursor = cursor.sort(sortParams);
-            }
-
-            cursor.toArray(function(err, items) {
-                if(err) {
-                    throw 'Error caught: ' + err;
+                if(sortParams) {
+                    cursor = cursor.sort(sortParams);
                 }
 
-                callback(items);
+                return cursor.toArray();
             });
-        });
     }
 
 });

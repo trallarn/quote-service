@@ -1,6 +1,8 @@
 var fs = require('fs');
 var _ = require('underscore');
 var glob = require('glob');
+var moment = require('moment');
+var Promise = require('promise');
 
 module.exports = QuoteRepository;
 
@@ -19,10 +21,18 @@ QuoteRepository.prototype = {
         };
 
         if(from) {
+            if(moment.isMoment(from)) {
+                from = from.toDate();
+            }
+
             query.date = { $gte: from };
         }
 
         if(to) {
+            if(moment.isMoment(to)) {
+                to = to.toDate();
+            }
+
             query.date = query.date || {};
             query.date.$lte = to;
         }
@@ -32,27 +42,37 @@ QuoteRepository.prototype = {
         return query;
     },
 
+    /**
+     * @return promise with quote at the given date
+     */
+    getAt: function(symbol, date) {
+
+        var from = moment(date)
+            .subtract(4, 'days')
+            .toDate();
+
+        return this.getAsync(symbol, from, date)
+            .then(function(quotes) {
+                return _.last(quotes);
+            });
+    },
+
     getAsync: function(symbol, from, to, callback) {
         var query = this._buildQuery(symbol, from, to);
 
-        var promise = new Promise(function(resolve, reject) {
-            resolve = callback || resolve;
-
-            this.mongoFactory.getEquityDb(function(db) {
-                var cursor = db.collection('quotesDaily').find(query).sort( { date: 1 } );
-
-                cursor.toArray().then(function(items) {
-                    resolve(items);
-                });
-            });
-
-        }.bind(this));
+        var promise = this.mongoFactory.getEquityDb()
+            .then(function(db) {
+                return db.collection('quotesDaily')
+                    .find(query)
+                    .sort( { date: 1 } )
+                    .toArray();
+        });
 
         if(callback) {
-            promise.then();
-        } else {
-            return promise;
-        }
+            promise.then(callback);
+        } 
+
+        return promise;
 
     },
 

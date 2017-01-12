@@ -1,11 +1,13 @@
 var Promise = require('promise');
+var moment = require('moment');
 var _ = require('underscore');
 var quoteSerializer = require('../QuoteSerializer.js');
 
 var Series = require('../math/Series.js');
 
-var SeriesAnalysis = function(quoteRepository) {
+var SeriesAnalysis = function(quoteRepository, instrumentRepository) {
     this.quoteRepository = quoteRepository;
+    this.instrumentRepository = instrumentRepository;
 };
 
 SeriesAnalysis.prototype = {
@@ -20,17 +22,87 @@ SeriesAnalysis.prototype = {
         });
     },
 
+    /**
+     * Gets instrument close to an extrema.
+     * @param index - index
+     * @param ttl - see getExtremasTTL 
+     * @param from - see getExtremasTTL 
+     * @param withinPercent - defaults 
+     * @param at - optional date for comparison, defaults to now
+     * @return promise
+     */
+    getCloseToExtremas: function(index, from, ttl, withinPercent, at) {
+        var at = at ? new Date(at) : new Date();
+        var to = moment(at).add(ttl, 'days').toDate();
+        var ttls = [ttl];
+
+        var self = this;
+
+        // Adds the at-quote.
+        var withAtQuote = function(data) {
+            return self.quoteRepository.getAt(data.instrument.symbol, at)
+                .then(function(quote) {
+                    data.quote = quote;
+                    return data;
+                });
+        };
+
+        // Filters instruments close to extreme
+        var filter = function(datas) {
+            datas = _.filter(datas, function(data) {
+                return data.quote;
+            });
+
+            return _.filter(datas, function(data) {
+                var allExtremas = [].concat(data.extremas.maxY)
+                    .concat(data.extremas.minY);
+
+                var within = data.quote.close * withinPercent / 100;
+
+                return _.find(allExtremas, function(extr) {
+                    return Math.abs(data.quote.close - extr) < within;
+                });
+            });
+        };
+
+        return this.instrumentRepository.getIndexComponents(index)
+            .then(function(components) {
+                return _.map(components, function(instrument) {
+                    return self.getExtremasTTL(instrument.symbol, from, to, ttls)
+                        .then(function(extremas) {
+                            return {
+                                instrument: instrument,
+                                extremas: extremas[0]
+                            };
+                        })
+                        .then(withAtQuote);
+                });
+            })
+            .then(Promise.all)
+            .then(filter)
+            .then(function(datas) {
+                return _.pluck(datas, 'instrument');
+            });
+    },
+
+    /**
+     * Get extremas calculated by time-to-live.
+     * @return promise
+     */
     getExtremasTTL: function(symbol, from, to, ttls) {
         return this.quoteRepository.getAsync(symbol, from, to)
             .then(function(quotes) {
                 try {
-                    var extremes = Series.getExtremasTTL(this._getClosings(quotes), this._getDates(quotes), ttls);
+                    var extremas = Series.getExtremasTTL(this._getClosings(quotes), this._getDates(quotes), ttls);
 
-                    return quoteSerializer.extremesTTLToLines(extremes);
+                    return extremas;
                 } catch (e) {
                     return Promise.reject(e);
                 }
-            }.bind(this));
+            }.bind(this))
+            .catch(function(err) {
+                console.error(err);
+            });
     },
 
     /**

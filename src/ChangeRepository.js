@@ -140,7 +140,9 @@ ChangeRepository.prototype = {
             this.instrumentRepository.getIndex(index, function(indexIndex) {
                 this.instrumentRepository.getInstrumentsBySymbols(indexIndex.indexSymbols || [], function(indexInstruments) {
 
-                    this.instrumentRepository.getIndexComponents(index, onInstruments.bind(this, indexInstruments));
+                    this.instrumentRepository.getIndexComponents(index)
+                        .then(onInstruments.bind(this, indexInstruments));
+
                 }.bind(this));
 
             }.bind(this));

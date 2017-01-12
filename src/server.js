@@ -1,5 +1,6 @@
 var express = require('express');
 var assert = require('assert');
+var moment = require('moment');
 
 // Express middleware
 var cors = require('cors');
@@ -21,7 +22,7 @@ var favoritesRepository = require('./FavoritesRepository.js')(mongoFactory);
 var quoteSerializer = require('./QuoteSerializer.js');
 
 var SeriesAnalysis = require('./service/SeriesAnalysis.js');
-var seriesAnalysis = new SeriesAnalysis(quoteRepository);
+var seriesAnalysis = new SeriesAnalysis(quoteRepository, instrumentRepository);
 
 var quoteLoader = new QuoteLoader({
     quoteRepository: quoteRepository,
@@ -157,9 +158,10 @@ app.get('/indices', function (req, res) {
 });
 
 app.get('/indexComponents/:index', function (req, res) {
-    instrumentRepository.getIndexComponents(req.params.index, function(components){
-        res.jsonp(components);
-    });
+    instrumentRepository.getIndexComponents(req.params.index)
+        .then(function(components){
+            res.jsonp(components);
+        });
 });
 
 app.get('/instruments/change/', function (req, res) {
@@ -219,10 +221,27 @@ app.get('/seriesAnalysis/extremas/:symbol', function (req, res) {
 
     seriesAnalysis.getExtremasTTL(req.params.symbol, from, to, ttls ? ttls.split(',') : epsilon)
         .then(function(extremas) {
-            res.jsonp(extremas);
+            res.jsonp(quoteSerializer.extremesTTLToLines(extremas));
         })
         .catch(function(e){
             console.error('/seriesAnalysis/extremas ' + e);
+            res.status(500).send(e);
+        });
+});
+
+app.get('/seriesAnalysis/extremas/closeTo/:ttl/:from', function (req, res) {
+    var from = moment(req.params.from);
+    var ttl = req.params.ttl;
+    var index = req.query.index;
+    var at = req.query.at;
+    var withinPercent = !isNaN(req.query.withinPercent) ? Number(req.query.withinPercent) : 5;
+
+    seriesAnalysis.getCloseToExtremas(index, from, ttl, withinPercent, at)
+        .then(function(instruments) {
+            res.jsonp(instruments);
+        })
+        .catch(function(e){
+            console.error('/seriesAnalysis/extremas/closeto ' + e + '\n'+ e.stack);
             res.status(500).send(e);
         });
 });
