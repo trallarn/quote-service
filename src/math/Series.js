@@ -68,18 +68,17 @@ Series.prototype = {
             temp.push(_.extend(getTtlDataModel(), { ttl: ttl } )); 
         });
 
-        for (var i = 1; i < ys.length - 1; i++) {
-            for(var j = 0; j < ttls.length; j++) {
-                var ttl = ttls[j];
+        for(var j = 0; j < ttls.length; j++) {
+            var ttl = ttls[j];
+
+            for (var i = ttl; i < ys.length - ttl; i++) {
                 var curTemp = temp[j];
 
                 var xBefore = i - ttl;
                 var xLater = i + ttl;
                 var aNow = ys[i];
-                var from = Math.max(0, xBefore);
-                var to = Math.min(ys.length, xLater + 1);
 
-                var ysInterval = ys.slice(from, to);
+                var ysInterval = ys.slice(xBefore, xLater + 1);
 
                 var isMax = !_.find(ysInterval, function(comp) {
                     return comp > aNow;

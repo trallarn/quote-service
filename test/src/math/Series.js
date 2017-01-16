@@ -54,8 +54,8 @@ test('getExtremasTTL ttl 100', function(t) {
             ttl: 100,
             maxY: [],
             maxX: [],
-            minY: [5],
-            minX: [6]
+            minY: [],
+            minX: []
         }
     });
 });
