@@ -23,13 +23,29 @@ _.extend(InstrumentRepository.prototype, {
             throw 'instruments must be an array';
         }
 
-        return new Promise(function(fulfill, reject) {
-            this.mongoFactory.getEquityDb(function(db){
-                db.collection('instruments').insert(instruments)
-                    .then(fulfill)
-                    .catch(reject);
+        return this.mongoFactory.getEquityDb()
+            .then(function(db){
+                var bulk = db.collection('instruments').initializeUnorderedBulkOp();
+
+                _.each(instruments, function(instrument) {
+                    try {
+
+                        var query = {
+                            symbol: instrument.symbol
+                        };
+
+                        bulk.find(query)
+                            .upsert()
+                            .updateOne(instrument);
+
+                    } catch (e) {
+                        console.log(e);
+                    }
+
+                });
+
+                return bulk.execute()
             });
-        }.bind(this));
     },
 
     /**
