@@ -24,7 +24,7 @@
     "tape": "^4.5.1"
   },
   "scripts": {
-    "test": "tape test/**/*.js",
+    "test": "find test/src/ -type f -exec node {} \\;",
     "start": "node_modules/nodemon/bin/nodemon.js src/server.js localhost 3000"
   },
   "author": "",
