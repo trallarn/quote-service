@@ -230,7 +230,7 @@ app.get('/seriesAnalysis/extremas/:symbol', function (req, res) {
 });
 
 app.get('/seriesAnalysis/extremas/closeTo/:ttl/:from', function (req, res) {
-    var from = moment(req.params.from);
+    var from = moment.utc(req.params.from);
     var ttl = req.params.ttl;
     var index = req.query.index;
     var at = req.query.at;

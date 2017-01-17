@@ -33,7 +33,7 @@ SeriesAnalysis.prototype = {
      */
     getCloseToExtremas: function(index, from, ttl, withinPercent, at) {
         var at = at ? moment.utc(at) : moment();
-        var to = moment(at).add(ttl, 'days').toDate();
+        var to = moment(at).add(ttl, 'days');
         var ttls = [ttl];
 
         var self = this;
