@@ -1,5 +1,5 @@
 /**
- * This script fetches index components and stores them in db.
+ * This script fetches index components for stockholm and stores them in db.
  */
 
 var _ = require('underscore');
