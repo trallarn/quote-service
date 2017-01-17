@@ -236,6 +236,17 @@ app.get('/seriesAnalysis/extremas/closeTo/:ttl/:from', function (req, res) {
     var at = req.query.at;
     var withinPercent = !isNaN(req.query.withinPercent) ? Number(req.query.withinPercent) : 5;
 
+    var error = '';
+
+    if(!from.isValid()) {
+        error += 'Invalid from, specify as yyyy-mm-dd';
+    }
+
+    if(error) {
+        res.status(500).send(error);
+        return;
+    }
+
     seriesAnalysis.getCloseToExtremas(index, from, ttl, withinPercent, at)
         .then(function(instruments) {
             res.jsonp(instruments);

@@ -60,7 +60,10 @@ SeriesAnalysis.prototype = {
                 var within = data.quote.close * withinPercent / 100;
 
                 return _.find(allExtremas, function(extr) {
-                    return Math.abs(data.quote.close - extr) < within;
+                    if(Math.abs(data.quote.close - extr) < within) {
+                        //console.log('incl %s %s %s ', data.quote.symbol, data.quote.close, extr);
+                        return true;
+                    }
                 });
             });
         };
