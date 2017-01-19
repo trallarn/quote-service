@@ -65,22 +65,34 @@ function QuoteFetcher () {
                 toMonth = to.getMonth() + 1, 
                 toDay = to.getDate();
 
-        symbols = _.isArray(symbols) ? symbols : [symbols];
-        var from = fromYear+'-'+ zeroFill(2, fromMonth) +'-'+ zeroFill(2, fromDay);
-        var to = toYear+'-'+ zeroFill(2, toMonth) +'-'+ zeroFill(2, toDay);
+            symbols = _.isArray(symbols) ? symbols : [symbols];
+            var from = fromYear+'-'+ zeroFill(2, fromMonth) +'-'+ zeroFill(2, fromDay);
+            var to = toYear+'-'+ zeroFill(2, toMonth) +'-'+ zeroFill(2, toDay);
 
-        console.log('Fetching historical for ' + symbols + ' from ' + from + ' to ' + to);
+            console.log('Fetching historical for ' + symbols + ' from ' + from + ' to ' + to);
 
-        yahooFinance.historical({
-            symbols: symbols,
-            from: from,
-            to: to,
-            }, function (err, result) {
-                if(err) {
-                    throw err;
+            yahooFinance.historical({
+                symbols: symbols,
+                from: from,
+                to: to,
+                }, function (err, result) {
+                    if(err) {
+                        throw err;
+                    }
+
+                    callback(result);
                 }
+            );
+        },
 
-                callback(result);
+        snapshot: function(symbols) {
+            symbols = typeof symbols === 'string' ? [symbols] : symbols;
+
+            return yahooFinance.snapshot({
+                symbols: symbols
+            })
+            .then(function(snapshot) {
+                return snapshot;
             });
         },
 

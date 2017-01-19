@@ -104,61 +104,76 @@ QuoteRepository.prototype = {
      */
     saveDaily: function(quotes, callback) {
 
-        var flatQuotes = this.flattenQuotes(quotes);
+        var promise = this.mongoFactory.getEquityDb()
+            .then(function(db){
 
-        if(flatQuotes.length === 0) {
-            console.log('No quotes to save. Skipping.');
-            callback();
-            return;
+                var flatQuotes = this.flattenQuotes(quotes);
+
+                if(flatQuotes.length === 0) {
+                    console.log('No quotes to save. Skipping.');
+                    return;
+                } else {
+                    var isMissingSymbol = flatQuotes.some(function(quote) {
+                        return !quote.symbol;
+                    });
+
+                    if(isMissingSymbol) {
+                        console.log('missing symbol for some quotes. Skipping.');
+                        return;
+                    }
+                }
+
+                // Unset time zone offset
+                _.each(flatQuotes, function(quote) {
+                    if(!quote) {
+                        console.warn('empty quote, skipping it');
+                        return;
+                    }
+
+                    if(!_.isDate(quote.date)) {
+                        quote.date = new Date(quote.date);
+                    }
+
+                    quote.date = new Date(quote.date.getTime() - 60000 * quote.date.getTimezoneOffset());
+                });
+
+
+                var bulk = db.collection('quotesDaily').initializeUnorderedBulkOp();
+
+                _.each(flatQuotes, function(quote) {
+                    try {
+
+                        var query = {
+                            symbol: quote.symbol,
+                            date: quote.date
+                        };
+
+                        bulk.find(query)
+                            .upsert()
+                            .updateOne(quote);
+
+                    } catch (e) {
+                        console.log(e);
+                    }
+
+                });
+
+                return bulk.execute()
+                    .then(function(result) {
+                        console.log('mongodb res: ' + JSON.stringify(result.toJSON()));
+                        return flatQuotes;
+                    })
+                    .catch(function(err) {
+                        console.error(err);
+                    });
+
+        }.bind(this));
+
+        if(callback) {
+            promise.then(callback);
         }
 
-        // Unset time zone offset
-        _.each(flatQuotes, function(quote) {
-            if(!quote) {
-                console.warn('empty quote, skipping it');
-                return;
-            }
-
-            if(!_.isDate(quote.date)) {
-                quote.date = new Date(quote.date);
-            }
-
-            quote.date = new Date(quote.date.getTime() - 60000 * quote.date.getTimezoneOffset());
-        });
-
-        this.mongoFactory.getEquityDb(function(db){
-
-            var bulk = db.collection('quotesDaily').initializeUnorderedBulkOp();
-
-            _.each(flatQuotes, function(quote) {
-                try {
-
-                    var query = {
-                        symbol: quote.symbol,
-                        date: quote.date
-                    };
-
-                    bulk.find(query)
-                        .upsert()
-                        .updateOne(quote);
-
-                } catch (e) {
-                    console.log(e);
-                }
-
-            });
-
-            var res = bulk.execute(function(err, result) {
-                if(err) {
-                    console.error(err);
-                }
-
-                console.log('mongodb res: ' + result.toJSON());
-
-                callback(flatQuotes);
-            });
-
-        });
+        return promise;
     },
 
     saveQuotes: function(quotes, callback) {

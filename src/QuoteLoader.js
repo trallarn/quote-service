@@ -1,6 +1,7 @@
 var assert = require('assert');
 var _ = require('underscore');
 var Promise = require('promise');
+var moment = require('moment');
 
 module.exports = QuoteLoader;
 
@@ -73,6 +74,27 @@ QuoteLoader.prototype = {
             }.bind(this));
         }, this);
 
+    },
+
+    /**
+     * Fetches realtime quotes via yahoo snapshot and saves them.
+     */
+    fetchIntradayQuotesFromYahoo: function(symbols) {
+        return this.quoteFetcher.snapshot(symbols)
+            .then(function(snapshots) {
+                var quotes = snapshots.map(function(snapshot) {
+                    return {
+                        symbol: snapshot.symbol,
+                        close: snapshot.lastTradePriceOnly,
+                        open: snapshot.open,
+                        high: snapshot.daysHigh,
+                        low: snapshot.daysLow,
+                        date: moment.utc(snapshot.lastTradeDate).toDate()
+                    };
+                });
+
+                return this.quoteRepository.saveDaily(quotes);
+            }.bind(this));
     },
 
     /**
