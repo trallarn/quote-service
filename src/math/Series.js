@@ -70,37 +70,55 @@ Series.prototype = {
 
         for(var j = 0; j < ttls.length; j++) {
             var ttl = ttls[j];
+            var curTemp = temp[j];
+
+            var yMax;
+            var yMin;
+            var slice;
+
+            var newSlice = function(i) {
+                slice = ys.slice(i - ttl, i + ttl + 1);
+            };
+
+            var recalc = function(i) {
+                yMax = Math.max.apply(null, slice);
+                yMin = Math.min.apply(null, slice);
+            };
+
+            newSlice(ttl);
+            recalc(ttl);
 
             for (var i = ttl; i < ys.length - ttl; i++) {
-                var curTemp = temp[j];
 
-                var xBefore = i - ttl;
-                var xLater = i + ttl;
-                var aNow = ys[i];
+                var y = ys[i];
 
-                var ysInterval = ys.slice(xBefore, xLater + 1);
-
-                var isMax = !_.find(ysInterval, function(comp) {
-                    return comp > aNow;
-                });
-
-                if(isMax) {
-                    curTemp.maxY.push(aNow);
+                if(y === yMax) {
                     curTemp.maxX.push(i);
-                } else {
-                    var isMin = !_.find(ysInterval, function(comp) {
-                        return comp < aNow;
-                    });
-
-                    if(isMin) {
-                        curTemp.minY.push(aNow);
-                        curTemp.minX.push(i);
-                    }
+                } else if(y === yMin) {
+                    curTemp.minX.push(i);
                 }
+
+                var outY = slice[0];
+                var inY = ys[i + ttl + 1];
+
+                newSlice(i + 1);
+
+                if(outY >= yMax || outY <= yMin) {
+                    recalc(i + 1);
+                } else if(inY >= yMax) {
+                    yMax = inY;
+                } else if(inY <= yMin) {
+                debugger;
+                    yMin = inY;
+                }
+
             }
+
         } 
 
         _.each(temp, function(curTemp) {
+            curTemp.maxY = this._getForIndexes(ys, curTemp.maxX);
+            curTemp.minY = this._getForIndexes(ys, curTemp.minX);
             curTemp.maxX = this._getForIndexes(xs, curTemp.maxX);
             curTemp.minX = this._getForIndexes(xs, curTemp.minX);
         }, this);

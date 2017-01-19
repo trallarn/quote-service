@@ -12,7 +12,7 @@ test.onFinish(function() {
 
 var seriesAnalysis = new SeriesAnalysis(quoteRepository, instrumentRepository);
 
-test('getExtremasTTL SWMA', function(t) {
+test('getExtremasTTL SWMA', {skip:false},function(t) {
 
 
     var from = moment.utc('2015-01-17');
@@ -37,10 +37,10 @@ test('getExtremasTTL SWMA', function(t) {
 
 });
 
-test('getCloseToExtremas verify 2 instruments', function(t) {
+test('getCloseToExtremas verify 2 instruments', {skip:false}, function(t) {
 
     var from = moment.utc('2017-01-17').subtract(1, 'year');
-    var at = moment.utc('2017-01-16');
+    var at = moment.utc('2017-01-17');
 
     t.plan(1);
 
