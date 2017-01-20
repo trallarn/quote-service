@@ -74,18 +74,13 @@ Series.prototype = {
 
             var yMax;
             var yMin;
-            var slice;
-
-            var newSlice = function(i) {
-                slice = ys.slice(i - ttl, i + ttl + 1);
-            };
 
             var recalc = function(i) {
+                var slice = ys.slice(i - ttl, i + ttl + 1);
                 yMax = Math.max.apply(null, slice);
                 yMin = Math.min.apply(null, slice);
             };
 
-            newSlice(ttl);
             recalc(ttl);
 
             for (var i = ttl; i < ys.length - ttl; i++) {
@@ -98,10 +93,8 @@ Series.prototype = {
                     curTemp.minX.push(i);
                 }
 
-                var outY = slice[0];
+                var outY = ys[i - ttl];
                 var inY = ys[i + ttl + 1];
-
-                newSlice(i + 1);
 
                 if(outY >= yMax || outY <= yMin) {
                     recalc(i + 1);
