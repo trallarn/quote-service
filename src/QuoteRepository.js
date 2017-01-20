@@ -134,7 +134,7 @@ QuoteRepository.prototype = {
                         quote.date = new Date(quote.date);
                     }
 
-                    quote.date = new Date(quote.date.getTime() - 60000 * quote.date.getTimezoneOffset());
+                    quote.date = moment.utc([quote.date.getFullYear(), quote.date.getMonth(), quote.date.getDate()]).toDate();
                 });
 
 
