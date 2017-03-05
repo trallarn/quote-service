@@ -50,7 +50,7 @@ QuoteLoader.prototype = {
         _.each(symbolBatches, function(symbols) {
 
             //this.quoteFetcher.fetchDataFromLocalFile(symbols, from, to, function(data) {
-            this.quoteFetcher.fetchData(symbols, from, to, function(data) {
+            this.quoteFetcher.fetchData(symbols, from, to).then(function(data) {
 
                 //console.dir(data);
 
@@ -71,7 +71,10 @@ QuoteLoader.prototype = {
                     }
                 });
                  
-            }.bind(this));
+            }.bind(this))
+            .catch(function(err) {
+                throw err;
+            });
         }, this);
 
     },

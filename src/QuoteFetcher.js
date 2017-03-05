@@ -56,8 +56,9 @@ function QuoteFetcher () {
 
         /**
          * Fetches historical data from yahoo using module.
+         * @param period d - daily, w - weekly, m - monthly
          */
-        fetchData: function(symbols, from, to, callback) {
+        fetchData: function(symbols, from, to, period) {
             var fromYear = from.getFullYear(), 
                 fromMonth = from.getMonth() + 1, 
                 fromDay = from.getDate(), 
@@ -65,22 +66,18 @@ function QuoteFetcher () {
                 toMonth = to.getMonth() + 1, 
                 toDay = to.getDate();
 
+            period = period || 'd';
             symbols = _.isArray(symbols) ? symbols : [symbols];
             var from = fromYear+'-'+ zeroFill(2, fromMonth) +'-'+ zeroFill(2, fromDay);
             var to = toYear+'-'+ zeroFill(2, toMonth) +'-'+ zeroFill(2, toDay);
 
             console.log('Fetching historical for ' + symbols + ' from ' + from + ' to ' + to);
 
-            yahooFinance.historical({
+            return yahooFinance.historical({
                 symbols: symbols,
                 from: from,
                 to: to,
-                }, function (err, result) {
-                    if(err) {
-                        throw err;
-                    }
-
-                    callback(result);
+                period: period,
                 }
             );
         },
