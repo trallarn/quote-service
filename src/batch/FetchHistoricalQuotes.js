@@ -97,8 +97,8 @@ function getNumDaysBefore(date, numDays) {
 }
 
 
-function runJobs(fromStartOfTimes) {
-    var from = fromStartOfTimes ? new Date(1800,1,1) : false;
+function runJobs(startDate) {
+    var from = startDate ? startDate : false;
 
     var jobs = [
         //['stockholm', new Date(1800,1,1)],
@@ -125,9 +125,16 @@ function runJobs(fromStartOfTimes) {
     });
 }
 
-var fromStartOfTimes = process.argv[2];
+/**
+ * Fetches quotes from yahoo.
+ * Usage:
+ * node XXX <optional startdate, eg. 2017-02-10>
+ */
+var startDateParam = process.argv[2];
 
-runJobs(fromStartOfTimes);
+var startDate = startDateParam ? new Date(startDateParam) : false;
+
+runJobs(startDate);
 
 
 //var endDate = new Date(2016, 6, 1);
