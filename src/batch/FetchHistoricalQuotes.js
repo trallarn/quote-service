@@ -18,7 +18,7 @@ var quoteLoader = new QuoteLoader({
  * @param index name
  * @param optional fromDate 
  */
-function fetch(indexName, fromDate, callback) {
+function fetch(indexName, fromDate, toDate, callback) {
 
     console.log('fetching quotes for index: ' + indexName);
 
@@ -42,7 +42,7 @@ function fetch(indexName, fromDate, callback) {
             }
         }
 
-        var to = new Date();
+        var to = toDate || new Date();
         var symbols = index.symbols;
 
         // CAPPING!!!!
@@ -97,24 +97,25 @@ function getNumDaysBefore(date, numDays) {
 }
 
 
-function runJobs(startDate) {
+function runJobs(startDate, toDate) {
     var from = startDate ? startDate : false;
+    var to = toDate ? toDate : false;
 
     var jobs = [
         //['stockholm', new Date(1800,1,1)],
         //['Indices', new Date(1800,1,1)]
         //['Currencies', new Date(1800,1,1)]
         //['Commodities', new Date(1800,1,1)]
-        ['stockholm', from],
-        ['Currencies', from],
-        ['Commodities', from],
-        ['Indices', from]
+        ['stockholm', from, to],
+        ['Currencies', from, to],
+        ['Commodities', from, to],
+        ['Indices', from, to]
     ];
 
     var jobMem = { count: 0, stopAt: jobs.length };
 
     _.each(jobs, function(job) {
-        fetch(job[0], job[1], function() {
+        fetch(job[0], job[1], job[2], function() {
             jobMem.count++;
 
             if(jobMem.count === jobMem.stopAt) {
@@ -128,13 +129,15 @@ function runJobs(startDate) {
 /**
  * Fetches quotes from yahoo.
  * Usage:
- * node XXX <optional startdate, eg. 2017-02-10>
+ * node XXX <|startdate, eg. 2017-02-10> <|enddate, eg. 2017-02-11>
  */
 var startDateParam = process.argv[2];
+var endDateParam = process.argv[3];
 
 var startDate = startDateParam ? new Date(startDateParam) : false;
+var endDate = endDateParam ? new Date(endDateParam) : false;
 
-runJobs(startDate);
+runJobs(startDate, endDate);
 
 
 //var endDate = new Date(2016, 6, 1);
