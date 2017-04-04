@@ -126,11 +126,13 @@ ChangeRepository.prototype = {
 
                 // A few days later if missing the start
                 var fromEnd = new Date(from.getTime() + padInMillis);
-                this.quoteRepository.getAsync(instrument.symbol, from, fromEnd, onQuotes.bind(this, 'from', instrument));
+                this.quoteRepository.getAsync(instrument.symbol, from, fromEnd)
+                    .then(onQuotes.bind(this, 'from', instrument));
 
                 // A few days before if missing the start
                 var toStart = new Date(to.getTime() - padInMillis);
-                this.quoteRepository.getAsync(instrument.symbol, toStart, to, onQuotes.bind(this, 'to', instrument));
+                this.quoteRepository.getAsync(instrument.symbol, toStart, to)
+                    .then(onQuotes.bind(this, 'to', instrument));
             }, this);
 
         }.bind(this);

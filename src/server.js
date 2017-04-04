@@ -200,9 +200,12 @@ app.get('/daily/:symbol', function (req, res) {
 
     console.log('got request params: ' + JSON.stringify(req.params) + ' query: ' + JSON.stringify(req.query));
 
-    var getQuotesAndWrite = quoteRepository.getAsync.bind(quoteRepository, symbol, from, to, function(quotes){
-        res.jsonp(quoteSerializer.mongoToHighstock(symbol, quotes, chartType));
-    });
+    var getQuotesAndWrite = function() {
+        quoteRepository.getAsync(symbol, from, to)
+            .then(function(quotes){
+                res.jsonp(quoteSerializer.mongoToHighstock(symbol, quotes, chartType));
+            });
+    };
 
     if(refreshData) {
         console.log('refreshing data');
@@ -267,19 +270,21 @@ app.get('/quotes/:symbol', function(req, res) {
     var from = req.query.from || new Date(1900,1,1);
     var to = req.query.to || new Date();
 
-    var quotes = quoteRepository.getAsync(symbol, from, to, function(quotes){
-        if(quotes.length === 0) {
+    var quotes = quoteRepository.getAsync(symbol, from, to)
+        .then(function(quotes){
+            if(quotes.length === 0) {
 
-            quoteLoader.fetchDaily(symbol, from, to, function() {
-                quotes = quoteRepository.getAsync(symbol, from, to, function(quotes){
-                    res.send(quotes);
+                quoteLoader.fetchDaily(symbol, from, to, function() {
+                    quotes = quoteRepository.getAsync(symbol, from, to)
+                        .then(function(quotes){
+                            res.send(quotes);
+                        });
                 });
-            });
-        } else {
-            //console.log('quotes::::: '  + JSON.stringify(quotes));
-            res.send(quotes);
-        }
-    });
+            } else {
+                //console.log('quotes::::: '  + JSON.stringify(quotes));
+                res.send(quotes);
+            }
+        });
 
 });
 

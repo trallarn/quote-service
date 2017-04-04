@@ -1,3 +1,4 @@
+var moment = require('moment');
 var Promise = require('promise');
 var _ = require('underscore');
 var request = require('request-promise');
@@ -36,7 +37,33 @@ CorporateActionsRepository.prototype = {
             .then(this._convertFromAPI.bind(this, symbol));
     },
 
-    getFromDB: function(symbol, from, to) {
+    getSplitsFromDB: function(symbol, from, to) {
+        if(!symbol) {
+            throw 'Missing symbol';
+        }
+        return this.getFromDB(symbol, from, to, { type: 'SPLIT' });
+    },
+
+    getFromDB: function(symbol, from, to, subQuery) {
+        return this.mongoFactory.getEquityDb()
+            .then(function(db) {
+                var query = _.extend({ 
+                    symbol: symbol 
+                }, subQuery);
+
+                if(from) {
+                    query.date = {};
+                    query.date.$gte = from;
+                }
+                if(to) {
+                    query.date = query.date || {};
+                    query.date.$lt = to;
+                }
+
+                console.log('querying splits', query);
+                return db.collection('corporateActions').find(query)
+                    .toArray();
+            });
     },
 
     saveToDB: function(events) {
@@ -87,9 +114,10 @@ CorporateActionsRepository.prototype = {
                     return el.value;
                 });
 
-                // Set symbol
+                // Set symbol and date
                 eventsData.forEach(function(el) { 
                     el.symbol = symbol;
+                    el.date = moment.utc(String(el.date)).toDate();
                 });
 
                 resolve(eventsData);

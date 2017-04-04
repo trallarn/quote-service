@@ -6,11 +6,19 @@ var Promise = require('promise');
 
 module.exports = QuoteRepository;
 
-function QuoteRepository(mongoFactory) {
-    if(!(this instanceof QuoteRepository)) { return new QuoteRepository(mongoFactory) };
+function QuoteRepository(mongoFactory, options) {
+    if(!(this instanceof QuoteRepository)) { return new QuoteRepository(mongoFactory) } else {
+        options = options || {};
 
-    this.mongoFactory = mongoFactory;
-    this.quotesOutputDirectory = 'quotes-raw';
+        // Possible to create test collections
+        this.collections = _.extend({
+            quotesDaily: 'quotesDaily',
+            quotesDailyRaw: 'quotesDailyRaw'
+        }, options.collections);
+
+        this.mongoFactory = mongoFactory;
+        this.quotesOutputDirectory = 'quotes-raw';
+    }
 };
 
 QuoteRepository.prototype = {
@@ -57,23 +65,39 @@ QuoteRepository.prototype = {
             });
     },
 
+    /**
+     * Get raw daily quotes.
+     * @return promise
+     */
+    getRawAsync: function(symbol, from, to) {
+        return this._getQuotesAsync(symbol, from, to, this.collections.quotesDailyRaw);
+    },
+
+    /**
+     * Get adjusted daily quotes.
+     * @return promise
+     */
     getAsync: function(symbol, from, to, callback) {
+        if(callback) {
+            throw "Don't use callback!";
+        }
+        return this._getQuotesAsync(symbol, from, to, this.collections.quotesDaily);
+    },
+
+    /**
+     * Get quotes.
+     * @return promise
+     */
+    _getQuotesAsync: function(symbol, from, to, collection) {
         var query = this._buildQuery(symbol, from, to);
 
-        var promise = this.mongoFactory.getEquityDb()
+        return this.mongoFactory.getEquityDb()
             .then(function(db) {
-                return db.collection('quotesDaily')
+                return db.collection(collection)
                     .find(query)
                     .sort( { date: 1 } )
                     .toArray();
         });
-
-        if(callback) {
-            promise.then(callback);
-        } 
-
-        return promise;
-
     },
 
     flattenQuotes: function(quotes) {
@@ -98,13 +122,22 @@ QuoteRepository.prototype = {
         return flatQuotes;
     },
 
+    saveDailyAdjusted: function(quotes) {
+        console.log('saving adjusted daily quotes');
+        return this._saveDaily(quotes, this.collections.quotesDaily)
+    },
+
+    saveDaily: function(quotes, callback) {
+        return this._saveDaily(quotes, this.collections.quotesDailyRaw)
+            .nodeify(callback);
+    },
+
     /**
      * Saves daily quotes.
      * @param quotes <object|[quote]> from yahoo-finance
      */
-    saveDaily: function(quotes, callback) {
-
-        var promise = this.mongoFactory.getEquityDb()
+    _saveDaily: function(quotes, collection) {
+        return this.mongoFactory.getEquityDb()
             .then(function(db){
 
                 var flatQuotes = this.flattenQuotes(quotes);
@@ -138,7 +171,9 @@ QuoteRepository.prototype = {
                 });
 
 
-                var bulk = db.collection('quotesDaily').initializeUnorderedBulkOp();
+                var bulk = db.collection(collection).initializeUnorderedBulkOp();
+
+                console.warn('saving ' + flatQuotes.length + ' quotes to ' + collection);
 
                 _.each(flatQuotes, function(quote) {
                     try {
@@ -168,12 +203,6 @@ QuoteRepository.prototype = {
                     });
 
         }.bind(this));
-
-        if(callback) {
-            promise.then(callback);
-        }
-
-        return promise;
     },
 
     saveQuotes: function(quotes, callback) {

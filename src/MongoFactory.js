@@ -56,6 +56,7 @@ module.exports = function(conf) {
 
         closeEquityDb: function() {
             if(db) {
+                console.log('Closing db');
                 db.close();
             }
         }
