@@ -133,11 +133,22 @@ function runJobs(startDate, toDate) {
  */
 var startDateParam = process.argv[2];
 var endDateParam = process.argv[3];
+var symbolsParam = process.argv[4];
 
 var startDate = startDateParam ? new Date(startDateParam) : false;
 var endDate = endDateParam ? new Date(endDateParam) : false;
 
-runJobs(startDate, endDate);
+var symbols;
+
+if(symbolsParam) {
+    symbols = symbolsParam.split(',');
+}
+
+if(_.isArray(symbols)) {
+    fetchForSymbols(symbols, startDate, endDate, shutdown);
+} else {
+    runJobs(startDate, endDate);
+}
 
 
 //var endDate = new Date(2016, 6, 1);

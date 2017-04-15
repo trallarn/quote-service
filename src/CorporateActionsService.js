@@ -4,6 +4,9 @@ var assert = require('assert');
 
 module.exports = CorporateActionsService;
 
+/**
+ * Adjusts quotes for corporate actions such as splits.
+ */
 function CorporateActionsService(conf) {
     assert(conf.quoteRepository, 'Must have quoteRepository');
     assert(conf.corporateActionsRepository, 'Must have corporateActionsRepository');
@@ -15,18 +18,18 @@ function CorporateActionsService(conf) {
 CorporateActionsService.prototype = {
 
     /**
-     * Adjusts raw daily quote for splits that occurred between from and to dates.
+     * Adjusts daily quotes open, high, low, close values for splits that occurred between from and to dates. Original values will be stored in the orig-field.
      * @param symbol
      * @param from
      * @param to
      */
     adjustDailyForSplits: function(symbol, from, to) {
         return Promise.all([
-            this.quoteRepository.getRawAsync(symbol),
+            this.quoteRepository.getAsync(symbol),
             this.corporateActionsRepository.getSplitsFromDB(symbol, from, to)
         ]).then(this._adjustQuotesForSplits.bind(this))
             //.then(function(quotes) { console.log('adjusted quotes', quotes); return quotes;} )
-            .then(this.quoteRepository.saveDailyAdjusted.bind(this.quoteRepository))
+            .then(this.quoteRepository.saveDaily.bind(this.quoteRepository))
             .then(function() { return true; } );
     },
 
@@ -42,13 +45,34 @@ CorporateActionsService.prototype = {
             throw 'Invalid splits';
         }
 
+        if(splits.length === 0) {
+            return quotes;
+        }
+
         console.log('adjusting ' + _.first(quotes).symbol + ' for splits', splits);
 
         var adjustedQuotes = quotes;
 
+        // Set origin values and remove adjusted
+        adjustedQuotes.forEach(function(quote) {
+            _.extend(quote, quote.orig);
+            delete quote.orig;
+        });
+
         splits.forEach(function(split) {
             adjustedQuotes = this._adjustForSplit(adjustedQuotes, split);
         }.bind(this));
+
+        // Add original values
+        for(var i = 0; i < adjustedQuotes.length; i++) {
+            var q = quotes[i];
+            adjustedQuotes[i].orig = {
+                open: q.open,
+                low: q.low,
+                high: q.high,
+                close: q.close
+            };
+        }
 
         return adjustedQuotes;
     },
@@ -62,22 +86,20 @@ CorporateActionsService.prototype = {
 
         var denominator = Number(valueParts[0]) / Number(valueParts[1]);
 
-        var adjustedQuotes = _.map(quotes, function(quote) {
+        return _.map(quotes, function(quote) {
+            var adjQuote = _.extend({}, quote);
+
             if(quote.date < split.date) {
-                var adjQuote = _.extend({}, quote);
 
                 adjQuote.open = quote.open / denominator;
                 adjQuote.close = quote.close / denominator;
                 adjQuote.high = quote.high / denominator;
                 adjQuote.low = quote.low / denominator;
                 //console.log('adjusting quote, old, new ', quote, adjQuote, denominator);
-                return adjQuote;
-            } else {
-                return quote;
-            }
-        });
+            } 
 
-        return adjustedQuotes;
+            return adjQuote;
+        });
 
     }
 

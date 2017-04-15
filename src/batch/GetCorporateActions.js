@@ -9,6 +9,11 @@ function shutdown() {
     process.exit(0);
 }
 
+function printUsageAndExit() {
+    console.log('usage: node ' + process.argv[1] + ' <startdate> <enddate> <symbol,symbol,...>');
+    process.exit(0);
+}
+
 var corporateActionsRepository = new CorporateActionsRepository({
     mongoFactory: mongoFactory
 });
@@ -19,12 +24,17 @@ var endDateParam = process.argv[3];
 var startDate = startDateParam ? new Date(startDateParam) : false;
 var endDate = endDateParam ? new Date(endDateParam) : false;
 
-if(!(startDate && endDate)) {
-    console.log('usage: node <filename> <startdate> <enddate>');
+if(!(startDate && endDate && !isNaN(startDate.getTime()) && !isNaN(endDate.getTime()))) {
+    printUsageAndExit();
 }
 
-//TODO Get real symbols
-var symbols = ['ERIC-B.ST'];
+var symbolsParam = process.argv[4];
+
+if(!symbolsParam || symbolsParam.length === 0) {
+    printUsageAndExit();
+}
+
+var symbols = symbolsParam.split(',');
 
 symbols.forEach(function(symbol) {
     corporateActionsRepository.getFromAPI(symbol, startDate, endDate)

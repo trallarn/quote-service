@@ -104,7 +104,9 @@ QuoteRepository.prototype = {
 
         var flatQuotes;
 
-        if(_.isObject(quotes)) {
+        if(_.isArray(quotes)) {
+            flatQuotes = quotes;
+        } else {
             // Add symbol to each quote and flatten
             for(var key in quotes) {
                 _.each(quotes[key], function(quote) {
@@ -115,20 +117,13 @@ QuoteRepository.prototype = {
             flatQuotes = _.reduce(_.keys(quotes), function(memo, key) {
                 return memo.concat(quotes[key]);
             }, []);
-        } else {
-            flatQuotes = quotes;
         }
 
         return flatQuotes;
     },
 
-    saveDailyAdjusted: function(quotes) {
-        console.log('saving adjusted daily quotes');
-        return this._saveDaily(quotes, this.collections.quotesDaily)
-    },
-
     saveDaily: function(quotes, callback) {
-        return this._saveDaily(quotes, this.collections.quotesDailyRaw)
+        return this._saveDaily(quotes, this.collections.quotesDaily)
             .nodeify(callback);
     },
 
