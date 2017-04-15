@@ -12,8 +12,7 @@ function QuoteRepository(mongoFactory, options) {
 
         // Possible to create test collections
         this.collections = _.extend({
-            quotesDaily: 'quotesDaily',
-            quotesDailyRaw: 'quotesDailyRaw'
+            quotesDaily: 'quotesDaily'
         }, options.collections);
 
         this.mongoFactory = mongoFactory;
@@ -63,14 +62,6 @@ QuoteRepository.prototype = {
             .then(function(quotes) {
                 return _.last(quotes);
             });
-    },
-
-    /**
-     * Get raw daily quotes.
-     * @return promise
-     */
-    getRawAsync: function(symbol, from, to) {
-        return this._getQuotesAsync(symbol, from, to, this.collections.quotesDailyRaw);
     },
 
     /**

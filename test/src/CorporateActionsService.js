@@ -13,8 +13,7 @@ var buildService = function() {
         }),
         quoteRepository: new QuoteRepository(mongoFactory, {
             collections: {
-                quotesDaily: 'quotesDailyTest',
-                quotesDailyRaw: 'quotesDailyRaw'
+                quotesDaily: 'quotesDailyTest'
             }
         }),
     });

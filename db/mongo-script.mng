@@ -1,7 +1,6 @@
 use equity;
 
 db.quotesDaily.createIndex({symbol:1,date:1},{unique:true});
-db.quotesDailyRaw.createIndex({symbol:1,date:1},{unique:true});
 db.indices.createIndex({name:1},{unique:true});
 db.instruments.createIndex({symbol:1},{unique:true});
 db.corporateActions.createIndex({symbol:1,date:1,type:1},{unique:true});

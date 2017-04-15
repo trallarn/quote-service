@@ -26,7 +26,7 @@
     "tape": "^4.5.1"
   },
   "scripts": {
-    "test": "find test/src/ -type f -name *.js -exec node {} \\; | grep -B 10 'not ok' || true",
+    "test": "find test/src/ -type f -name *.js -exec node {} \\; | grep  '#' | grep -B3 fail || true",
     "start": "node_modules/nodemon/bin/nodemon.js src/server.js localhost 3000"
   },
   "author": "",
