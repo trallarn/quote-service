@@ -1,8 +1,19 @@
 var Promise = require('promise');
 var MongoClient = require('mongodb').MongoClient
   , assert = require('assert');
+
+// Connected db
 var db = false;
 
+// Is connection pending
+var pendingConnection = false;
+
+// Waiting for connection
+var callbackQueue = [];
+
+/**
+ * Connects and call all queued callbacks
+ */
 var connectToDb = function(env, callback) {
 
     if(env !== 'dev') {
@@ -12,14 +23,24 @@ var connectToDb = function(env, callback) {
     // Connection URL
     var url = 'mongodb://localhost:27017/equity';
 
-    // Use connect method to connect to the Server
-    MongoClient.connect(url, function(err, lDb) {
-        assert.equal(null, err);
-        console.log("Connected correctly to server");
+    callbackQueue.push(callback);
+    pendingConnection = true;
 
-        db = lDb;
-        callback(db);
-    });
+    // Use connect method to connect to the Server
+    return MongoClient.connect(url)
+        .then(lDb => {
+            console.log("Connected correctly to mongo db");
+
+            db = lDb;
+            pendingConnection = false;
+            
+            // Call all waiting callbacks
+            var cb;
+            while(cb = callbackQueue.pop()) {
+                cb(db);
+            }
+        })
+        .catch(e => { console.log(e.message); console.log(e.stack); throw e; });
 };
 
 module.exports = function(conf) {
@@ -40,10 +61,12 @@ module.exports = function(conf) {
             var promise = new Promise(function(fullfill, reject) {
                 fullfill = callback || fullfill;
 
-                if(!db) {
-                    connectToDb(env, fullfill);
-                } else {
+                if(db) {
                     fullfill(db);
+                } else if(pendingConnection) {
+                    callbackQueue.push(fullfill);
+                } else {
+                    connectToDb(env, fullfill);
                 }
             });
 
@@ -58,6 +81,7 @@ module.exports = function(conf) {
             if(db) {
                 console.log('Closing db');
                 db.close();
+                db = false;
             }
         }
     }
