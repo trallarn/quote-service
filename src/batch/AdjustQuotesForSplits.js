@@ -2,7 +2,7 @@ var _ = require('underscore');
 var Promise = require('promise');
 var CorporateActionsRepository = require('../CorporateActionsRepository');
 var QuoteRepository = require('../QuoteRepository.js');
-var CorporateActionsService = require('../CorporateActionsService.js');
+var CorporateActionsService = require('../service/CorporateActionsService.js');
 var mongoFactory = require('../MongoFactory.js')({env: 'dev'});
 
 function shutdown() {

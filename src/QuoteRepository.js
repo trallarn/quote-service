@@ -4,6 +4,8 @@ var glob = require('glob');
 var moment = require('moment');
 var Promise = require('promise');
 
+var MongoPrinter = require('./mongo/MongoPrinter.js');
+
 module.exports = QuoteRepository;
 
 function QuoteRepository(mongoFactory, options) {
@@ -100,9 +102,9 @@ QuoteRepository.prototype = {
         } else {
             // Add symbol to each quote and flatten
             for(var key in quotes) {
-                _.each(quotes[key], function(quote) {
+                for(let quote of quotes[key]) {
                     quote.symbol = key;
-                });
+                };
             }
 
             flatQuotes = _.reduce(_.keys(quotes), function(memo, key) {
@@ -164,7 +166,7 @@ QuoteRepository.prototype = {
                 _.each(flatQuotes, function(quote) {
                     try {
 
-                        var query = {
+                        var query = quote['_id'] ? { _id: quote['_id'] } : {
                             symbol: quote.symbol,
                             date: quote.date
                         };
@@ -181,7 +183,7 @@ QuoteRepository.prototype = {
 
                 return bulk.execute()
                     .then(function(result) {
-                        console.log('mongodb res: ' + JSON.stringify(result.toJSON()));
+                        console.log(MongoPrinter.getResultSummary(result));
                         return flatQuotes;
                     })
                     .catch(function(err) {
