@@ -138,9 +138,10 @@ app.get('/instruments', cors(corsOptions), function (req, res) {
     var symbols = req.query.symbols;
 
     if(symbols) {
-        instrumentRepository.getInstrumentsBySymbols(symbols, function(instruments){
-            res.jsonp(instruments);
-        });
+        instrumentRepository.getInstrumentsBySymbols(symbols)
+            .then((instruments) => {
+                res.jsonp(instruments);
+            });
     } else {
         instrumentRepository.getInstruments(function(instruments){
             res.jsonp(instruments);

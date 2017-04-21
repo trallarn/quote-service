@@ -130,14 +130,14 @@ _.extend(InstrumentRepository.prototype, {
 
     /**
      * @param symbols [symbol]
+     * @return promise
      */
-    getInstrumentsBySymbols: function(symbols, callback) {
+    getInstrumentsBySymbols: function(symbols) {
         if(!_.isArray(symbols)) {
             throw 'Symbols must be an array';
         }
 
-        this.getCollection('instruments', { symbol: { $in: symbols } } )
-            .then(callback);
+        return this.getCollection('instruments', { symbol: { $in: symbols } } );
     },
 
     getInstrument: function(symbol, callback) {

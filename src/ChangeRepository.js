@@ -140,12 +140,13 @@ ChangeRepository.prototype = {
         if(index) {
             // Add index
             this.instrumentRepository.getIndex(index, function(indexIndex) {
-                this.instrumentRepository.getInstrumentsBySymbols(indexIndex.indexSymbols || [], function(indexInstruments) {
+                this.instrumentRepository.getInstrumentsBySymbols(indexIndex.indexSymbols || [])
+                .then((indexInstruments) => {
 
                     this.instrumentRepository.getIndexComponents(index)
                         .then(onInstruments.bind(this, indexInstruments));
 
-                }.bind(this));
+                });
 
             }.bind(this));
 
