@@ -161,7 +161,7 @@ QuoteRepository.prototype = {
 
                 var bulk = db.collection(collection).initializeUnorderedBulkOp();
 
-                console.warn('saving ' + flatQuotes.length + ' quotes to ' + collection);
+                console.log(`saving ${flatQuotes.length} quotes to ${collection} for ${(flatQuotes[0] || {}).symbol}`);
 
                 _.each(flatQuotes, function(quote) {
                     try {

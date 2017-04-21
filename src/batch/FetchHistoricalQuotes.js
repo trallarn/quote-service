@@ -90,6 +90,12 @@ function shutdown() {
     process.exit(0);
 }
 
+function printHelpAndExit() {
+    console.log('Usage:');
+    console.log(process.argv[1] + ' <|startdate, eg. 2017-02-10> <|enddate, eg. 2017-02-11> <symbol,symbol,...>');
+    process.exit(0);
+}
+
 function getNumDaysBefore(date, numDays) {
     var before = new Date(date.getTime());
     before.setTime(date.getTime() - numDays * 24 * 3600 * 1000);
@@ -131,6 +137,11 @@ function runJobs(startDate, toDate) {
  * Usage:
  * node XXX <|startdate, eg. 2017-02-10> <|enddate, eg. 2017-02-11>
  */
+
+if(['--help','-h'].find(el => process.argv[2] === el)) {
+    printHelpAndExit();
+}
+
 var startDateParam = process.argv[2];
 var endDateParam = process.argv[3];
 var symbolsParam = process.argv[4];

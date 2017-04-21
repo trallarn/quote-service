@@ -4,18 +4,20 @@ var CorporateActionsRepository = require('../CorporateActionsRepository');
 var QuoteRepository = require('../QuoteRepository.js');
 var CorporateActionsService = require('../service/CorporateActionsService.js');
 var mongoFactory = require('../MongoFactory.js')({env: 'dev'});
+var instrumentRepository = require('../InstrumentRepository.js')(mongoFactory);
 
 function shutdown() {
-    console.log('closing equity db');
     mongoFactory.closeEquityDb();
     // Shouldn't need to exit but the process hangs otherwise. Some db-connetction hanging?
-    process.exit(0);
+    //process.exit(0);
 }
 
-var corporateActionsService = new CorporateActionsService({
-    corporateActionsRepository: new CorporateActionsRepository({
-        mongoFactory: mongoFactory
-    }),
+const corporateActionsRepository = new CorporateActionsRepository({
+    mongoFactory: mongoFactory
+});
+
+const corporateActionsService = new CorporateActionsService({
+    corporateActionsRepository: corporateActionsRepository,
     quoteRepository: new QuoteRepository(mongoFactory),
 });
 
@@ -29,22 +31,60 @@ var corporateActionsService = new CorporateActionsService({
 //    console.log('usage: node ' + process.argv[1] + ' <startdate> <enddate>');
 //}
 
-var symbolsParam = process.argv[2];
-
-if(!symbolsParam || symbolsParam.length === 0) {
-    console.log(process.argv[1] + ' <symbol,symbol,...>');
+function printHelpAndExit() {
+    console.log(process.argv[1] + ' <--symbols <symbol,symbol,...> | --index <index>>');
     process.exit(0);
 }
 
-//TODO Get real symbols
-var symbols = symbolsParam.split(',');
-
-Promise.all(symbols.map(function(symbol) {
-    return corporateActionsService.adjustDailyForSplits(symbol)
-        .then(function(ret) {
-            console.log('adjusted ' + symbol + ' for splits');
+function adjustForSplits(symbols) {
+    return corporateActionsRepository.getFromAPIAndSaveToDB(symbols)
+        .catch(e => console.error(e.name, e.message.slice(0, 20)))
+        .then(_res => {
+            return Promise.all(symbols.map(symbol => {
+                return corporateActionsService.adjustDailyForSplits(symbol)
+                    .then(function(ret) {
+                        console.log('adjusted ' + symbol + ' for splits');
+                    })
+                    .catch(function(err) {
+                        console.log('', err, err.stack);
+                    });
+            }))
         })
-        .catch(function(err) {
-            console.log('', err, err.stack);
-        });
-})).finally(shutdown);
+        .finally(shutdown);
+}
+
+function resetQuotes(symbols) {
+    console.log('Resetting quotes for ' + symbols);
+    corporateActionsService.resetQuotesToOrigForSymbols(symbols)
+        .catch(e => console.error(e.message, e.stack))
+        .finally(shutdown);
+}
+
+const flag = process.argv[2];
+const param = process.argv[3];
+
+if(!param || param.length === 0) {
+    printHelpAndExit();
+}
+
+switch(flag) {
+    case '--reset':
+        resetQuotes(param.split(','));
+        break;
+    case '--index':
+        const index = param;
+        instrumentRepository.getIndexComponents(index)
+            .then(_components => _components.map(_component => _component.symbol))
+            .then(_symbols => adjustForSplits(_symbols))
+            .catch(e => console.error(e.message, e.stack))
+            .finally(shutdown);
+        break;
+
+    case '--symbols':
+        const symbols = param.split(',');
+        adjustForSplits(symbols)
+        break;
+
+    default:
+        printHelpAndExit();
+}

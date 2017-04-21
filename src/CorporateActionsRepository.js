@@ -20,10 +20,27 @@ function CorporateActionsRepository(conf) {
 CorporateActionsRepository.prototype = {
 
     /**
+     * Fetches from API and saves to DB.
+     * @param symbols [symbol]
+     * @return [Promise<MongoWriteResult>]
+     */
+    getFromAPIAndSaveToDB: function(symbols) {
+        return Promise.all(
+            symbols.map(symbol => {
+                return this.getFromAPI(symbol)
+                    .then(_actions => this.saveToDB(_actions))
+                    .catch(e => {
+                        console.error('error when getting corporate actions from API for symbol ' + symbol);
+                    })
+            })
+        );
+    },
+
+    /**
      * Get events from YAHOO.
      * @return promise
      */
-    getFromAPI: function(symbol, from, to) {
+    getFromAPI: function(symbol, from = new Date(1900, 0, 0), to = new Date()) {
         var url = this.urlBase.replace('{symbol}', symbol)
             .replace('{fromDay}', from.getDate())
             .replace('{fromMonth}', from.getMonth())
@@ -87,8 +104,9 @@ CorporateActionsRepository.prototype = {
                 console.log('saved corporate actions for ', events[0].symbol);
                 return bulk.execute();
             })
-            .catch(function(err) {
-                console.log('could not get db', err);
+            .catch(e => {
+                console.log('could not get db', e.message, e.stack);
+                throw e;
             });
     },
 

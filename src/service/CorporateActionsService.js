@@ -14,7 +14,8 @@ class CorporateActionsService {
     }
 
     /**
-     * @return [Promise]
+     * Gets 
+     * @return [Promise<[quote,..]>]
      */
     getSymbolsWithLargeGaps(symbols, diffDecimal = 0.40) {
         return Promise.all(
@@ -42,6 +43,7 @@ class CorporateActionsService {
      * Calculates if any difference between two adjacene closes is greater than diffDecimal.
      * @param diffDecimal, eg. 0.4 (for 40%)
      * @param quotes [quote]
+     * @return quote | undefined
      */
     _shouldAdjust(diffDecimal, quotes) {
         return quotes.find((_el, _i) => {
@@ -70,6 +72,33 @@ class CorporateActionsService {
             .then(function() { return true; } );
     }
 
+    resetQuotesToOrigForSymbols(symbols){
+        return Promise.all(
+            symbols.map(symbol => {
+                return this.quoteRepository.getAsync(symbol)
+                    .then(this.resetQuotesToOrig)
+                    .then(_quotes => this.quoteRepository.saveDaily(_quotes))
+            })
+        );
+    }
+
+    /**
+     * Overwrites values with orig's values.
+     * Deletes orig.
+     * @return quotes
+     */
+    resetQuotesToOrig(quotes){
+
+        // Set origin values and remove adjusted
+        quotes.forEach(function(quote) {
+            _.extend(quote, quote.orig);
+            delete quote.orig;
+        });
+
+        return quotes;
+
+    }
+
     _adjustQuotesForSplits([quotes, splits]) {
 
         if(!_.isArray(quotes)) {
@@ -88,11 +117,7 @@ class CorporateActionsService {
 
         var adjustedQuotes = quotes;
 
-        // Set origin values and remove adjusted
-        adjustedQuotes.forEach(function(quote) {
-            _.extend(quote, quote.orig);
-            delete quote.orig;
-        });
+        this.resetQuotesToOrig(adjustedQuotes);
 
         splits.forEach(function(split) {
             adjustedQuotes = this._adjustForSplit(adjustedQuotes, split);
