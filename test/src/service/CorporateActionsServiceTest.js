@@ -22,13 +22,13 @@ let service = new CorporateActionsService({
     }),
 });
 
-test('getSymbolsToAdjust', {skip:false}, function(t) {
+test('getSymbolsWithLargeGaps', {skip:false}, function(t) {
 
     const symbols = [ 'AZN.ST', 'BILIA-A.ST', 'ERIC-B.ST' ];
 
     t.plan(2);
 
-    service.getSymbolsToAdjust(symbols)
+    service.getSymbolsWithLargeGaps(symbols)
         .then(res => {
             console.log(res);
             t.equals(res.length, 1);
@@ -108,7 +108,8 @@ test('adjustQuotesForSplits', function(t) {
         value: '2:1'
     }]]);
 
-    t.plan(2);
+    t.plan(3);
     t.equal(adjusted[0].close, 5);
     t.equal(adjusted[1].close, 10);
+    t.equal(adjusted[1].orig, undefined);
 });

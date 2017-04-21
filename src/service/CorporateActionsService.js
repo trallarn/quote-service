@@ -16,7 +16,7 @@ class CorporateActionsService {
     /**
      * @return [Promise]
      */
-    getSymbolsToAdjust(symbols, diffDecimal = 0.40) {
+    getSymbolsWithLargeGaps(symbols, diffDecimal = 0.40) {
         return Promise.all(
             symbols.map((_symbol) => {
                 return this.quoteRepository.getAsync(_symbol)
@@ -70,9 +70,7 @@ class CorporateActionsService {
             .then(function() { return true; } );
     }
 
-    _adjustQuotesForSplits(params) {
-        var quotes = params[0];
-        var splits = params[1];
+    _adjustQuotesForSplits([quotes, splits]) {
 
         if(!_.isArray(quotes)) {
             throw 'Invalid quotes';
@@ -100,20 +98,14 @@ class CorporateActionsService {
             adjustedQuotes = this._adjustForSplit(adjustedQuotes, split);
         }.bind(this));
 
-        // Add original values
-        for(var i = 0; i < adjustedQuotes.length; i++) {
-            var q = quotes[i];
-            adjustedQuotes[i].orig = {
-                open: q.open,
-                low: q.low,
-                high: q.high,
-                close: q.close
-            };
-        }
-
         return adjustedQuotes;
     }
 
+    /**
+     * Adjusts the quotes with the split.
+     * @param quotes [quote]
+     * @param split {date, value: 'x:y'}
+     */
     _adjustForSplit(quotes, split) {
         var valueParts = split.value.split(':');
 
@@ -124,7 +116,7 @@ class CorporateActionsService {
         var denominator = Number(valueParts[0]) / Number(valueParts[1]);
 
         return quotes.map((quote) => {
-            var adjQuote = _.extend({}, quote);
+            var adjQuote = Object.assign({}, quote);
 
             if(quote.date < split.date) {
 
@@ -132,6 +124,15 @@ class CorporateActionsService {
                 adjQuote.close = quote.close / denominator;
                 adjQuote.high = quote.high / denominator;
                 adjQuote.low = quote.low / denominator;
+
+                // Add original values
+                adjQuote.orig = {
+                    open: quote.open,
+                    low: quote.low,
+                    high: quote.high,
+                    close: quote.close
+                };
+
                 //console.log('adjusting quote, old, new ', quote, adjQuote, denominator);
             } 
 
