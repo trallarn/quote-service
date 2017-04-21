@@ -1,2 +1,2 @@
-set path=src/**
+set path=src/**,test/**
 let grepExcludeDir='node_modules'
