@@ -44,14 +44,16 @@ test('getCloseToExtremas verify 2 instruments', {skip:false}, function(t) {
 
     t.plan(1);
 
-    seriesAnalysis.getCloseToExtremas('OMXS30', from, 50, 2, at)
-        .then(function(extremas) {
-            console.dir(extremas);
+    instrumentRepository.getInstrumentsBySymbols(['ABB.ST','ASSA-B.ST','ERIC-B.ST'])
+        .then(components => seriesAnalysis.getCloseToExtremas(components, from, 50, 2, at))
+        .then(extremas => {
+            //console.dir(extremas);
             t.equal(extremas.length, 2, 'wrong count');
         })
-        .catch(function(e) {
+        .catch(e => {
             console.error(e);
             console.error(e.stack);
+            t.fail(e.message);
         });
 
 });

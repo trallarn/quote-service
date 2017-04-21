@@ -24,14 +24,14 @@ SeriesAnalysis.prototype = {
 
     /**
      * Gets instrument close to an extrema.
-     * @param index - index
+     * @param components [instrument, ...]
      * @param ttl - see getExtremasTTL 
      * @param from - see getExtremasTTL 
      * @param withinPercent - defaults 
      * @param at - optional date for comparison, defaults to now
      * @return promise
      */
-    getCloseToExtremas: function(index, from, ttl, withinPercent, at) {
+    getCloseToExtremas: function(components, from, ttl, withinPercent, at) {
         var at = at ? moment.utc(at) : moment();
         var to = moment(at).add(ttl, 'days');
         var ttls = [ttl];
@@ -68,20 +68,18 @@ SeriesAnalysis.prototype = {
             });
         };
 
-        return this.instrumentRepository.getIndexComponents(index)
-            .then(function(components) {
-                return _.map(components, function(instrument) {
-                    return self.getExtremasTTL(instrument.symbol, from, to, ttls)
-                        .then(function(extremas) {
-                            return {
-                                instrument: instrument,
-                                extremas: extremas[0]
-                            };
-                        })
-                        .then(withAtQuote);
-                });
+        return Promise.all(
+            _.map(components, function(instrument) {
+                return self.getExtremasTTL(instrument.symbol, from, to, ttls)
+                    .then(function(extremas) {
+                        return {
+                            instrument: instrument,
+                            extremas: extremas[0]
+                        };
+                    })
+                    .then(withAtQuote);
             })
-            .then(Promise.all)
+        )
             .then(filter)
             .then(function(datas) {
                 return _.pluck(datas, 'instrument');

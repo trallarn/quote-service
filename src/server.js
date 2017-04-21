@@ -251,8 +251,9 @@ app.get('/seriesAnalysis/extremas/closeTo/:ttl/:from', function (req, res) {
         return;
     }
 
-    seriesAnalysis.getCloseToExtremas(index, from, ttl, withinPercent, at)
-        .then(function(instruments) {
+    instrumentRepository.getIndexComponents(index)
+        .then(instruments => seriesAnalysis.getCloseToExtremas(instruments, from, ttl, withinPercent, at))
+        .then(instruments => {
             res.jsonp(instruments);
         })
         .catch(function(e){
