@@ -4,7 +4,7 @@
  */
 
 var _ = require('underscore');
-var Promise = require('promise');
+var Promise = require('bluebird');
 var CorporateActionsRepository = require('../CorporateActionsRepository');
 var QuoteRepository = require('../QuoteRepository.js');
 var CorporateActionsService = require('../service/CorporateActionsService.js');

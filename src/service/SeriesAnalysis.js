@@ -1,4 +1,4 @@
-var Promise = require('promise');
+var Promise = require('bluebird');
 var moment = require('moment');
 var _ = require('underscore');
 var quoteSerializer = require('../QuoteSerializer.js');

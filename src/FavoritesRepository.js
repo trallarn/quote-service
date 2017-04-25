@@ -1,5 +1,5 @@
 var _ = require('underscore');
-var Promise = require('promise');
+var Promise = require('bluebird');
 var mongodb = require('mongodb');
 
 module.exports = FavoritesRepository;

@@ -3,7 +3,7 @@
  * Eg. http://www.nasdaqomxnordic.com/index/index_info?Instrument=SE0001775891
  */
 var _ = require('underscore');
-var Promise = require('promise');
+var Promise = require('bluebird');
 
 var QuoteLoader = require('../QuoteLoader.js');
 var quoteFetcher = require('../QuoteFetcher.js')();

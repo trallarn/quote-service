@@ -1,6 +1,6 @@
 var assert = require('assert');
 var _ = require('underscore');
-var Promise = require('promise');
+var Promise = require('bluebird');
 var moment = require('moment');
 
 module.exports = QuoteLoader;

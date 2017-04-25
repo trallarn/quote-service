@@ -1,5 +1,5 @@
 var moment = require('moment');
-var Promise = require('promise');
+var Promise = require('bluebird');
 var _ = require('underscore');
 var request = require('request-promise');
 var csv = require('csv');

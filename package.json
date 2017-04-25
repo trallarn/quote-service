@@ -14,7 +14,6 @@
     "glob": "^7.0.6",
     "moment": "^2.17.1",
     "mongodb": "^2.1.2",
-    "promise": "^7.1.1",
     "request": "^2.67.0",
     "request-promise": "^4.2.0",
     "underscore": "^1.8.3",

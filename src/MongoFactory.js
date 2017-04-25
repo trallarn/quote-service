@@ -1,4 +1,4 @@
-var Promise = require('promise');
+var Promise = require('bluebird');
 var MongoClient = require('mongodb').MongoClient
   , assert = require('assert');
 

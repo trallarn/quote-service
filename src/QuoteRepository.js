@@ -2,7 +2,7 @@ var fs = require('fs');
 var _ = require('underscore');
 var glob = require('glob');
 var moment = require('moment');
-var Promise = require('promise');
+var Promise = require('bluebird');
 
 var MongoPrinter = require('./mongo/MongoPrinter.js');
 

@@ -1,4 +1,4 @@
-var Promise = require('promise');
+var Promise = require('bluebird');
 var _ = require('underscore');
 
 module.exports = InstrumentRepository;
