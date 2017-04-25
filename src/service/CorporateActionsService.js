@@ -14,7 +14,8 @@ class CorporateActionsService {
     }
 
     /**
-     * Gets 
+     * Gets quote for each symbol where these is a large gap, possibly, 
+     * a split that has not yet been adjusted.
      * @return [Promise<[quote,..]>]
      */
     getSymbolsWithLargeGaps(symbols, diffDecimal = 0.40) {
@@ -24,7 +25,7 @@ class CorporateActionsService {
                     .then(this._shouldAdjust.bind(this, diffDecimal))
                     .then(_found => {
                         if(_found) {
-                            console.log(`adjust for ${_symbol} at ${_found.date}`);
+                            console.log(`Symbol with large gap "${_symbol}" at ${_found.date}`);
                         }
                         return _found;
                     })

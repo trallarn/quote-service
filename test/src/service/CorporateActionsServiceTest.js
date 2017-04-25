@@ -15,7 +15,7 @@ test.onFinish(function() {
     mongoFactory.closeEquityDb();
 });
 
-let service = new CorporateActionsService({
+const service = new CorporateActionsService({
     quoteRepository: quoteRepository,
     corporateActionsRepository: new CorporateActionsRepository({
         mongoFactory: mongoFactory

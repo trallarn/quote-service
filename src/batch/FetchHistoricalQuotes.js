@@ -81,13 +81,8 @@ function fetchForSymbols(symbols, from, to, callback) {
 }
 
 function shutdown() {
-    // Give db chance to finish its operations
-    //setTimeout(function() {
-    //}, 5000);
     console.log('closing equity db');
     mongoFactory.closeEquityDb();
-    // Shouldn't need to exit but the process hangs otherwise. Some db-connetction hanging?
-    process.exit(0);
 }
 
 function printHelpAndExit() {
