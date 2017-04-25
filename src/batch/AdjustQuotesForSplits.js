@@ -26,7 +26,13 @@ function printHelpAndExit() {
 
 function adjustForSplits(symbols, corporateActionsFromDB) {
     return corporateActionsService.getSymbolsWithLargeGaps(symbols)
-        .then(_quotes => _quotes.map(q => q.symbol))
+        .then(_quotes => {
+            return _quotes.map(q => q.symbol);
+        })
+        .then(_symbols => {
+            console.log(`Adjusting ${_symbols.length} symbols`);
+            return _symbols;
+        })
         .then(_symbols => {
             if(corporateActionsFromDB) {
                 console.log('Using corporate actions from DB');
@@ -34,14 +40,10 @@ function adjustForSplits(symbols, corporateActionsFromDB) {
             } else {
                 // Fetch from API
                 console.log('Fetching corporate actions from API.');
-                return corporateActionsRepository.getFromAPIAndSaveToDB(symbols)
+                return corporateActionsRepository.getFromAPIAndSaveToDB(_symbols)
                     .catch(e => console.error(e.name, e.message.slice(0, 20)))
                     .then(() => _symbols);
             }
-        })
-        .then(_symbols => {
-            console.log(`Adjusting ${_symbols.length} symbols`);
-            return _symbols;
         })
         .then(_symbols => {
             return _symbols.map(symbol => {
