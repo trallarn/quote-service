@@ -7,11 +7,10 @@ const testConf = require('../../TestConf');
 const moment = require('moment');
 let CorporateActionsRepository = require('../../../src/CorporateActionsRepository');
 const CorporateActionsService = require('../../../src/service/CorporateActionsService.js');
-const mongoFactory = require('../../../src/MongoFactory.js')();
+const mongoFactory = require('../../../src/MongoFactory.js')({ env: 'unittest'});
 const quoteRepository = require('../../../src/QuoteRepository.js')(mongoFactory);
 
 test.onFinish(function() {
-    console.log('shutting down mongo');
     mongoFactory.closeEquityDb();
 });
 
@@ -22,20 +21,80 @@ const service = new CorporateActionsService({
     }),
 });
 
-test('getSymbolsWithLargeGaps', {skip:false}, function(t) {
+/**
+ * @return Promise<Collection>
+ */
+function insertTestData() {
+    return mongoFactory.getEquityDb()
+        .then(db => {
+            try {
+                db.collection('quotesDaily').drop();
+            } catch(e){}
+            return;
+        })
+        .then(() => {
+            return mongoFactory.getEquityDb();
+        })
+        .then(db => {
+            // Insert test data
+            return db.collection('quotesDaily').insertMany([{
+                    "date" : Date("1999-12-28T00:00:00Z"),
+                    "close" : 6,
+                    "symbol" : "ATCO-B.ST",
+                },
+                {
+                    "date" : Date("1999-12-29T00:00:00Z"),
+                    "close" : 13,
+                    "symbol" : "ATCO-B.ST",
+                },{
+                    "date" : Date("1999-12-28T00:00:00Z"),
+                    "close" : 6,
+                    "symbol" : "ERIC-B.ST",
+                },
+                {
+                    "date" : Date("1999-12-29T00:00:00Z"),
+                    "close" : 7,
+                    "symbol" : "ERIC-B.ST",
+                }]);
+        })
+        .then(() => {
+            return mongoFactory.getEquityDb();
+        })
+        .then(db => {
+            try {
+                db.collection('corporateActions').drop();
+            } catch(e){}
+            return;
+        })
+        .then(() => {
+            return mongoFactory.getEquityDb();
+        })
+        .then(db => {
+            return db.collection('corporateActions').insertMany([{
+                "type" : "SPLIT",
+                "date" : Date("1999-12-29T00:00:00Z"),
+                "value" : "4:1",
+                "symbol" : "ERIC-B.ST"
+            }]);
+        })
+        .catch(e => {
+            console.error(e.message, e.stack);
+            throw e;
+        });
+}
 
-    const symbols = [ 'AZN.ST', 'BILIA-A.ST', 'ERIC-B.ST' ];
+test('getSymbolsWithLargeGaps', { timeout: 1000 }, function(t) {
 
+    const symbols = [ 'ATCO-B.ST', 'ERIC-B.ST' ];
     t.plan(2);
-
-    service.getSymbolsWithLargeGaps(symbols)
+    insertTestData()
+        .then(() => service.getSymbolsWithLargeGaps(symbols))
         .then(res => {
             console.log(res);
             t.equals(res.length, 1);
             t.equals(res[0].symbol, symbols[0]);
         })
         .catch(e => test.fail(e.message));
-
 });
 
 test('_shouldAdjust_verifyTrue', function(t) {
@@ -68,22 +127,21 @@ test('_shouldAdjust_verifyFalse', function(t) {
 
 });
 
-test('adjustQuotesDaily', { skip: testConf.skipIntegrationTest() }, function(t) {
+test('adjustQuotesDaily', { timeout: 1000 }, function(t) {
 
     t.plan(1);
 
-    service.adjustDailyForSplits('ERIC-B.ST')
+    insertTestData()
+        .then(() => {
+            return service.adjustDailyForSplits('ERIC-B.ST');
+        })
         .then(function(ret) {
             t.equal(ret, true);
         })
         .catch(function(err) {
             console.log('', err, err.stack);
             t.fail();
-        })
-        .finally(function() {
-            mongoFactory.closeEquityDb();
         });
-
 });
 
 test('adjustQuotesForSplits', function(t) {

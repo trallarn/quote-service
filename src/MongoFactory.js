@@ -2,8 +2,20 @@ var Promise = require('promise');
 var MongoClient = require('mongodb').MongoClient
   , assert = require('assert');
 
+// Valid envs
+const envs = {
+    // Connection URL
+    dev: {
+        url: 'mongodb://localhost:27017/equity'
+    },
+    // Test equity db
+    unittest: {
+        url: 'mongodb://localhost:27017/equity-test'
+    }
+};
+
 // Connected db
-var db = false;
+let db = false;
 
 // Is connection pending
 var pendingConnection = false;
@@ -14,20 +26,20 @@ var callbackQueue = [];
 /**
  * Connects and call all queued callbacks
  */
-var connectToDb = function(env, callback) {
+function connectToEquityDB (env, callback) {
 
-    if(env !== 'dev') {
-        throw 'Invalid env "' + env + '". Only dev currently supported';
+    if(!envs[env]) {
+        throw `Invalid env "${env}". Valid envs: ${envs}`;
     }
 
-    // Connection URL
-    var url = 'mongodb://localhost:27017/equity';
+    const environment = envs[env];
 
+    console.log(`Using db env "${env}"`);
     callbackQueue.push(callback);
     pendingConnection = true;
 
     // Use connect method to connect to the Server
-    return MongoClient.connect(url)
+    return MongoClient.connect(environment.url)
         .then(lDb => {
             console.log("Connected correctly to mongo db");
 
@@ -43,8 +55,7 @@ var connectToDb = function(env, callback) {
         .catch(e => { console.log(e.message); console.log(e.stack); throw e; });
 };
 
-module.exports = function(conf) {
-    conf = conf || {};
+module.exports = function(conf = {}) {
     var env = conf.env || 'dev';
 
     return {
@@ -66,7 +77,7 @@ module.exports = function(conf) {
                 } else if(pendingConnection) {
                     callbackQueue.push(fullfill);
                 } else {
-                    connectToDb(env, fullfill);
+                    connectToEquityDB(env, fullfill);
                 }
             });
 
