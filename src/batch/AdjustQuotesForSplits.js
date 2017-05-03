@@ -20,7 +20,7 @@ function printHelpAndExit() {
     console.log(`
     This scripts adjusts quotes for splits. 
     Run with: 
-    ${process.argv[1]} < --symbols|--reset <symbol,symbol,...> | --index <index>>
+    ${process.argv[1]} < --symbols|--reset <symbol,symbol,...> | --index <index>> --skipLastAdjustmentCheck --fromDB
     `);
     process.exit(0);
 }
