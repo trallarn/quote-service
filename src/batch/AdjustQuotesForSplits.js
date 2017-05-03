@@ -20,7 +20,7 @@ function printHelpAndExit() {
     console.log(`
     This scripts adjusts quotes for splits. 
     Run with: 
-    ${process.argv[1]} < --symbols|--reset <symbol,symbol,...> | --index <index>> --skipLastAdjustmentCheck --fromDB
+    ${process.argv[1]} < --symbols|--reset <symbol,symbol,...> | --indices <index,index,...>> --skipLastAdjustmentCheck --fromDB
     `);
     process.exit(0);
 }
@@ -114,9 +114,11 @@ switch(flag) {
     case '--reset':
         resetQuotes(param.split(','));
         break;
-    case '--index':
-        const index = param;
-        instrumentRepository.getIndexComponents(index)
+    case '--indices':
+        const indices = param.split(',');
+        Promise.all(indices.map(_index => instrumentRepository.getIndexComponents(_index)))
+            .then(_res => [].concat(..._res))
+            .then(_res => [...new Set(_res)])
             .then(_components => _components.map(_component => _component.symbol))
             .then(_symbols => adjustForSplits(_symbols, corporateActionsFromDB, skipLastAdjustmentCheck))
             .catch(e => console.error(e.message, e.stack))
