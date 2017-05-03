@@ -136,6 +136,10 @@ class CorporateActionsService {
      * @param split {date, value: 'x:y'}
      */
     _adjustForSplit(quotes, split) {
+        if(typeof split.value !== 'string') {
+            return quotes;
+        }
+
         var valueParts = split.value.split(':');
 
         if(valueParts.length !== 2) {
