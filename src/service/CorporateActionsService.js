@@ -154,13 +154,15 @@ class CorporateActionsService {
                 adjQuote.high = quote.high / denominator;
                 adjQuote.low = quote.low / denominator;
 
-                // Add original values
-                adjQuote.orig = {
-                    open: quote.open,
-                    low: quote.low,
-                    high: quote.high,
-                    close: quote.close
-                };
+                // Add original values if there is none
+                if(!adjQuote.orig) {
+                    adjQuote.orig = {
+                        open: quote.open,
+                        low: quote.low,
+                        high: quote.high,
+                        close: quote.close
+                    };
+                }
 
                 //console.log('adjusting quote, old, new ', quote, adjQuote, denominator);
             } 
