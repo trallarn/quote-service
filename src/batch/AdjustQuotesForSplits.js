@@ -118,8 +118,7 @@ switch(flag) {
         const indices = param.split(',');
         Promise.all(indices.map(_index => instrumentRepository.getIndexComponents(_index)))
             .then(_res => [].concat(..._res))
-            .then(_res => [...new Set(_res)])
-            .then(_components => _components.map(_component => _component.symbol))
+            .then(_components => [...new Set(_components.map(_component => _component.symbol))]) // unique symbols
             .then(_symbols => adjustForSplits(_symbols, corporateActionsFromDB, skipLastAdjustmentCheck))
             .catch(e => console.error(e.message, e.stack))
             .finally(shutdown);
