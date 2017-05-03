@@ -7,9 +7,11 @@ var assert = require('assert');
 class CorporateActionsService {
 
     constructor(conf) {
+        assert(conf.instrumentRepository, 'Must have instrumentRepository');
         assert(conf.quoteRepository, 'Must have quoteRepository');
         assert(conf.corporateActionsRepository, 'Must have corporateActionsRepository');
         this.quoteRepository = conf.quoteRepository;
+        this.instrumentRepository = conf.instrumentRepository;
         this.corporateActionsRepository = conf.corporateActionsRepository;
     }
 
@@ -70,7 +72,8 @@ class CorporateActionsService {
         ]).then(this._adjustQuotesForSplits.bind(this))
             //.then(function(quotes) { console.log('adjusted quotes', quotes); return quotes;} )
             .then(this.quoteRepository.saveDaily.bind(this.quoteRepository))
-            .then(function() { return true; } );
+            .then(() => this.instrumentRepository.updateSplitAdjustmentTS(symbol, new Date()))
+            .then(() => true);
     }
 
     resetQuotesToOrigForSymbols(symbols){

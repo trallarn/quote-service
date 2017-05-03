@@ -9,12 +9,14 @@ let CorporateActionsRepository = require('../../../src/CorporateActionsRepositor
 const CorporateActionsService = require('../../../src/service/CorporateActionsService.js');
 const mongoFactory = require('../../../src/MongoFactory.js')({ env: 'unittest'});
 const quoteRepository = require('../../../src/QuoteRepository.js')(mongoFactory);
+const instrumentRepository = require('../../../src/InstrumentRepository.js')(mongoFactory);
 
 test.onFinish(function() {
     mongoFactory.closeEquityDb();
 });
 
 const service = new CorporateActionsService({
+    instrumentRepository: instrumentRepository,
     quoteRepository: quoteRepository,
     corporateActionsRepository: new CorporateActionsRepository({
         mongoFactory: mongoFactory
@@ -25,58 +27,66 @@ const service = new CorporateActionsService({
  * @return Promise<Collection>
  */
 function insertTestData() {
-    return mongoFactory.getEquityDb()
-        .then(db => {
-            try {
-                db.collection('quotesDaily').drop();
-            } catch(e){}
-            return;
-        })
-        .then(() => {
-            return mongoFactory.getEquityDb();
-        })
-        .then(db => {
-            // Insert test data
-            return db.collection('quotesDaily').insertMany([{
-                    "date" : Date("1999-12-28T00:00:00Z"),
-                    "close" : 6,
-                    "symbol" : "ATCO-B.ST",
-                },
-                {
+    const setupQuotesDaily = mongoFactory.getEquityDb()
+            .then(db => {
+                try {
+                    db.collection('quotesDaily').drop();
+                } catch(e){}
+
+                // Insert test data
+                return db.collection('quotesDaily').insertMany([{
+                        "date" : Date("1999-12-28T00:00:00Z"),
+                        "close" : 6,
+                        "symbol" : "ATCO-B.ST",
+                    },
+                    {
+                        "date" : Date("1999-12-29T00:00:00Z"),
+                        "close" : 13,
+                        "symbol" : "ATCO-B.ST",
+                    },{
+                        "date" : Date("1999-12-28T00:00:00Z"),
+                        "close" : 6,
+                        "symbol" : "ERIC-B.ST",
+                    },
+                    {
+                        "date" : Date("1999-12-29T00:00:00Z"),
+                        "close" : 7,
+                        "symbol" : "ERIC-B.ST",
+                    }]);
+            });
+
+    const setupCorporateActions = mongoFactory.getEquityDb()
+            .then(db => {
+                try {
+                    db.collection('corporateActions').drop();
+                } catch(e){}
+
+                return db.collection('corporateActions').insertMany([{
+                    "type" : "SPLIT",
                     "date" : Date("1999-12-29T00:00:00Z"),
-                    "close" : 13,
-                    "symbol" : "ATCO-B.ST",
-                },{
-                    "date" : Date("1999-12-28T00:00:00Z"),
-                    "close" : 6,
-                    "symbol" : "ERIC-B.ST",
-                },
-                {
-                    "date" : Date("1999-12-29T00:00:00Z"),
-                    "close" : 7,
-                    "symbol" : "ERIC-B.ST",
+                    "value" : "4:1",
+                    "symbol" : "ERIC-B.ST"
                 }]);
-        })
-        .then(() => {
-            return mongoFactory.getEquityDb();
-        })
-        .then(db => {
-            try {
-                db.collection('corporateActions').drop();
-            } catch(e){}
-            return;
-        })
-        .then(() => {
-            return mongoFactory.getEquityDb();
-        })
-        .then(db => {
-            return db.collection('corporateActions').insertMany([{
-                "type" : "SPLIT",
-                "date" : Date("1999-12-29T00:00:00Z"),
-                "value" : "4:1",
-                "symbol" : "ERIC-B.ST"
-            }]);
-        })
+            });
+
+    const setupInstruments = mongoFactory.getEquityDb()
+            .then(db => {
+                try {
+                    db.collection('instruments').drop();
+                } catch(e){}
+
+                return db.collection('instruments').insertMany([{
+                        "name" : "Ericsson B",
+                        "symbol" : "ERIC-B.ST",
+                        "currency" : "SEK",
+                        "isin" : "SE0000108656",
+                        "sector" : "Technology",
+                        "nasdaqSymbol" : "ERIC B"
+                        }]);
+                });
+
+    return Promise.all([setupInstruments, setupQuotesDaily, setupCorporateActions])
+        .then(() => console.log('set up test data'))
         .catch(e => {
             console.error(e.message, e.stack);
             throw e;
@@ -129,15 +139,20 @@ test('_shouldAdjust_verifyFalse', function(t) {
 
 test('adjustQuotesDaily', { timeout: 1000 }, function(t) {
 
-    t.plan(1);
+    t.plan(2);
+
+    const symbol = 'ERIC-B.ST';
 
     insertTestData()
         .then(() => {
-            return service.adjustDailyForSplits('ERIC-B.ST');
+            return service.adjustDailyForSplits(symbol);
         })
-        .then(function(ret) {
+        .then(ret => {
             t.equal(ret, true);
         })
+        .then(() => instrumentRepository.getInstrumentsBySymbols([symbol]))
+        .then(_instruments => _instruments[0])
+        .then(_instr => t.ok(_instr.splitAdjustmentTS.getTime() > Date.now() - 2000, 'splitAdjustmentTS should be set on instrument'))
         .catch(function(err) {
             console.log('', err, err.stack);
             t.fail();

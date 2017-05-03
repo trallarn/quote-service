@@ -5,6 +5,7 @@
 
 var _ = require('underscore');
 var Promise = require('bluebird');
+var InstrumentRepository = require('../InstrumentRepository.js');
 var CorporateActionsRepository = require('../CorporateActionsRepository');
 var QuoteRepository = require('../QuoteRepository.js');
 var CorporateActionsService = require('../service/CorporateActionsService.js');
@@ -24,13 +25,36 @@ function printHelpAndExit() {
     process.exit(0);
 }
 
-function adjustForSplits(symbols, corporateActionsFromDB) {
-    return corporateActionsService.getSymbolsWithLargeGaps(symbols)
+/**
+ * Filters instruments with adjustment date older than a certain time.
+ */
+function filterInstrumentsNotRecentlyAdjusted(skipLastAdjustmentCheck, instruments) { 
+    if(skipLastAdjustmentCheck === true) {
+        console.log('Skipping last adjustment check');
+        return instruments;
+    }
+
+    const splitsCompareTime = Date.now() - 60 * 24 * 3600 * 1000;
+
+    return instruments.filter(_instr => {
+        return !_instr.splitAdjustmentTS || _instr.splitAdjustmentTS.getTime() < splitsCompareTime;
+    });
+}
+
+function adjustForSplits(symbols, corporateActionsFromDB, skipLastAdjustmentCheck) {
+    return instrumentRepository.getInstrumentsBySymbols(symbols)
+        .then(filterInstrumentsNotRecentlyAdjusted.bind(this, skipLastAdjustmentCheck))
+        .then(_instruments => _instruments.map(_instr => _instr.symbol))
+        .then(_symbols => {
+            console.log(`${_symbols.length} symbols not recently adjusted`);
+            return _symbols
+        })
+        .then(_symbols => corporateActionsService.getSymbolsWithLargeGaps(_symbols))
         .then(_quotes => {
             return _quotes.map(q => q.symbol);
         })
         .then(_symbols => {
-            console.log(`Adjusting ${_symbols.length} symbols`);
+            console.log(`${_symbols.length} symbols with large caps`);
             return _symbols;
         })
         .then(_symbols => {
@@ -72,6 +96,7 @@ const corporateActionsRepository = new CorporateActionsRepository({
 });
 
 const corporateActionsService = new CorporateActionsService({
+    instrumentRepository: new InstrumentRepository(mongoFactory),
     corporateActionsRepository: corporateActionsRepository,
     quoteRepository: new QuoteRepository(mongoFactory),
 });
@@ -79,6 +104,7 @@ const corporateActionsService = new CorporateActionsService({
 const flag = process.argv[2];
 const param = process.argv[3];
 const corporateActionsFromDB = process.argv.indexOf('--fromDB') > -1;
+const skipLastAdjustmentCheck = process.argv.indexOf('--skipLastAdjustmentCheck') > -1;
 
 if(!param || param.length === 0) {
     printHelpAndExit();
@@ -92,14 +118,14 @@ switch(flag) {
         const index = param;
         instrumentRepository.getIndexComponents(index)
             .then(_components => _components.map(_component => _component.symbol))
-            .then(_symbols => adjustForSplits(_symbols, corporateActionsFromDB))
+            .then(_symbols => adjustForSplits(_symbols, corporateActionsFromDB, skipLastAdjustmentCheck))
             .catch(e => console.error(e.message, e.stack))
             .finally(shutdown);
         break;
 
     case '--symbols':
         const symbols = param.split(',');
-        adjustForSplits(symbols, corporateActionsFromDB)
+        adjustForSplits(symbols, corporateActionsFromDB, skipLastAdjustmentCheck)
         break;
 
     default:

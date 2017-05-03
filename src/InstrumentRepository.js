@@ -15,12 +15,16 @@ function InstrumentRepository(mongoFactory) {
 
 _.extend(InstrumentRepository.prototype, {
 
+    saveInstrument: function(instrument) {
+        return this.saveInstruments([instrument]);
+    },
+
     /**
      * Saves instruments
      */
     saveInstruments: function(instruments) {
         if(!_.isArray(instruments)) {
-            throw 'instruments must be an array';
+            throw Error('instruments must be an array');
         }
 
         return this.mongoFactory.getEquityDb()
@@ -106,6 +110,29 @@ _.extend(InstrumentRepository.prototype, {
 
     },
 
+    /**
+     * Sets the timestamp when the instrument was adjusted for split.
+     * @return promise
+     */
+    updateSplitAdjustmentTS: function(symbol, date) {
+        if(!date || Number.isNaN(date.getTime())) {
+            throw new Error('invalid date: ' + date);
+        }
+
+        return this.getInstrument(symbol)
+            .then(_instr => {
+                if(!_instr) {
+                    return Promise.reject(`Null instrument for symbol '${symbol}'`);
+                }
+                return _instr;
+            })
+            .then(_instrument => { 
+                _instrument.splitAdjustmentTS = date; 
+                return _instrument;
+            })
+            .then(_instrument => this.saveInstrument(_instrument));
+    },
+
     getInstruments: function(callback) {
         var promise = this.getCollection('instruments');
 
@@ -141,7 +168,7 @@ _.extend(InstrumentRepository.prototype, {
     },
 
     getInstrument: function(symbol, callback) {
-        this.getOne('instruments', { symbol: symbol }, callback);
+        return this.getOne('instruments', { symbol: symbol }, callback);
     },
 
     getIndices: function(callback) {
