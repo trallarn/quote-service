@@ -54,7 +54,7 @@ function adjustForSplits(symbols, corporateActionsFromDB, skipLastAdjustmentChec
             return _quotes.map(q => q.symbol);
         })
         .then(_symbols => {
-            console.log(`${_symbols.length} symbols with large caps`);
+            console.log(`${_symbols.length} symbols with large gaps`);
             return _symbols;
         })
         .then(_symbols => {
