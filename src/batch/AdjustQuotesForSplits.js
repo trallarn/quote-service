@@ -4,6 +4,8 @@
  */
 
 var _ = require('underscore');
+var ArgumentParser = require('argparse').ArgumentParser;
+
 var Promise = require('bluebird');
 var InstrumentRepository = require('../InstrumentRepository.js');
 var CorporateActionsRepository = require('../CorporateActionsRepository');
@@ -14,15 +16,6 @@ var instrumentRepository = require('../InstrumentRepository.js')(mongoFactory);
 
 function shutdown() {
     mongoFactory.closeEquityDb();
-}
-
-function printHelpAndExit() {
-    console.log(`
-    This scripts adjusts quotes for splits. 
-    Run with: 
-    ${process.argv[1]} < --symbols|--reset <symbol,symbol,...> | --indices <index,index,...>> --skipLastAdjustmentCheck --fromDB
-    `);
-    process.exit(0);
 }
 
 /**
@@ -89,15 +82,13 @@ function adjustForSplits(symbols, corporateActionsFromDB, skipLastAdjustmentChec
 /**
  * Adjust splits in batches for smaller memory footprint.
  */
-function adjustForSplitsInBatches(symbols, corporateActionsFromDB, skipLastAdjustmentCheck) {
+function adjustForSplitsInBatches(symbols, corporateActionsFromDB, skipLastAdjustmentCheck, batchSize) {
 
     if(skipLastAdjustmentCheck === true) {
         console.log('Skipping last adjustment check');
     }
 
     let promise = Promise.resolve();
-
-    const batchSize = 20;
 
     for(let i = 0; i < symbols.length; i += batchSize) {
         const to = i + batchSize;
@@ -130,37 +121,53 @@ const corporateActionsService = new CorporateActionsService({
     quoteRepository: new QuoteRepository(mongoFactory),
 });
 
-const flag = process.argv[2];
-const param = process.argv[3];
-const corporateActionsFromDB = process.argv.indexOf('--fromDB') > -1;
-const skipLastAdjustmentCheck = process.argv.indexOf('--skipLastAdjustmentCheck') > -1;
+var parser = new ArgumentParser({
+  addHelp: true,
+  description: 'This scripts adjusts quotes for splits.'
+});
 
+const group = parser.addMutuallyExclusiveGroup({ required: true });
+group.addArgument( [ '--reset' ], { 
+    help: '<symbol,...,symbol>',
+});
+group.addArgument( [ '--indices' ], { 
+    help: '<index,...,index>',
+});
+group.addArgument( [ '--symbols' ], { 
+    help: '<symbol,...,symbol>',
+});
 
-if(!param || param.length === 0) {
-    printHelpAndExit();
-}
+parser.addArgument( [ '--batchSize' ], { 
+    help: 'size of batch', 
+    defaultValue: 100 
+});
+parser.addArgument( [ '--fromDB' ], { 
+    help: 'fetch corporate actions from DB instead of API', 
+    action: 'storeTrue', 
+    defaultValue: false 
+});
+parser.addArgument( [ '--skipLastAdjustmentCheck' ], { 
+    help: 'adjusts splits even though they were recently adjusted', 
+    action: 'storeTrue', 
+    defaultValue: false 
+});
 
-switch(flag) {
-    case '--reset':
-        resetQuotes(param.split(','));
-        break;
-    case '--indices':
-        const indices = param.split(',');
-        Promise.all(indices.map(_index => instrumentRepository.getIndexComponents(_index)))
-            .then(_res => [].concat(..._res))
-            .then(_components => [...new Set(_components.map(_component => _component.symbol))]) // unique symbols
-            .then(_symbols => adjustForSplitsInBatches(_symbols, corporateActionsFromDB, skipLastAdjustmentCheck))
-            .catch(e => console.error(e.message, e.stack))
-            .then(shutdown);
-        break;
+const args = parser.parseArgs();
+//console.log(args);
 
-    case '--symbols':
-        const symbols = param.split(',');
-        adjustForSplitsInBatches(symbols, corporateActionsFromDB, skipLastAdjustmentCheck)
-            .catch(e => console.error(e.message, e.stack))
-            .then(shutdown);
-        break;
-
-    default:
-        printHelpAndExit();
+if(args.reset) {
+    resetQuotes(args.reset.split(','));
+} else if(args.indices) {
+    const indices = args.indices.split(',');
+    Promise.all(indices.map(_index => instrumentRepository.getIndexComponents(_index)))
+        .then(_res => [].concat(..._res))
+        .then(_components => [...new Set(_components.map(_component => _component.symbol))]) // unique symbols
+        .then(_symbols => adjustForSplitsInBatches(_symbols, args.fromDB, args.skipLastAdjustmentCheck, args.batchSize))
+        .catch(e => console.error(e.message, e.stack))
+        .then(shutdown);
+} else if(args.symbols) {
+    const symbols = args.symbols.split(',');
+    adjustForSplitsInBatches(symbols, args.fromDB, args.skipLastAdjustmentCheck, args.batchSize)
+        .catch(e => console.error(e.message, e.stack))
+        .then(shutdown);
 }

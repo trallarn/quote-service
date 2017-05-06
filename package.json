@@ -4,6 +4,7 @@
   "description": "",
   "main": "src/QuoteFetcher.js",
   "dependencies": {
+    "argparse": "^1.0.9",
     "bluebird": "^3.5.0",
     "body-parser": "^1.15.2",
     "cheerio": "^0.20.0",
