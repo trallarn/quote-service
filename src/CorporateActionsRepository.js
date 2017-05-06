@@ -31,6 +31,7 @@ CorporateActionsRepository.prototype = {
                     .then(_actions => this.saveToDB(_actions))
                     .catch(e => {
                         console.error('error when getting corporate actions from API for symbol ' + symbol);
+                        console.error(e.message);
                     })
             })
         );
