@@ -30,7 +30,6 @@ function printHelpAndExit() {
  */
 function filterInstrumentsNotRecentlyAdjusted(skipLastAdjustmentCheck, instruments) { 
     if(skipLastAdjustmentCheck === true) {
-        console.log('Skipping last adjustment check');
         return instruments;
     }
 
@@ -46,7 +45,9 @@ function adjustForSplits(symbols, corporateActionsFromDB, skipLastAdjustmentChec
         .then(filterInstrumentsNotRecentlyAdjusted.bind(this, skipLastAdjustmentCheck))
         .then(_instruments => _instruments.map(_instr => _instr.symbol))
         .then(_symbols => {
-            console.log(`${_symbols.length} symbols not recently adjusted`);
+            if(_symbols.length > 0) {
+                console.log(`${_symbols.length} symbols not recently adjusted`);
+            }
             return _symbols
         })
         .then(_symbols => corporateActionsService.getSymbolsWithLargeGaps(_symbols))
@@ -54,16 +55,18 @@ function adjustForSplits(symbols, corporateActionsFromDB, skipLastAdjustmentChec
             return _quotes.map(q => q.symbol);
         })
         .then(_symbols => {
-            console.log(`${_symbols.length} symbols with large gaps`);
+            if(_symbols.length > 0) {
+                console.log(`${_symbols.length} symbols with large gaps`);
+            }
             return _symbols;
         })
         .then(_symbols => {
             if(corporateActionsFromDB) {
-                console.log('Using corporate actions from DB');
+                //console.log('Using corporate actions from DB');
                 return _symbols;
             } else {
                 // Fetch from API
-                console.log('Fetching corporate actions from API.');
+                //console.log('Fetching corporate actions from API.');
                 return corporateActionsRepository.getFromAPIAndSaveToDB(_symbols)
                     .catch(e => console.error(e.name, e.message.slice(0, 20)))
                     .then(() => _symbols);
@@ -72,7 +75,7 @@ function adjustForSplits(symbols, corporateActionsFromDB, skipLastAdjustmentChec
         .then(_symbols => {
             return _symbols.map(symbol => {
                 return corporateActionsService.adjustDailyForSplits(symbol)
-                    .then(function(ret) {
+                    .then((ret) => {
                         console.log('Adjusted ' + symbol + ' for splits');
                     })
                     .catch(function(err) {
@@ -80,8 +83,34 @@ function adjustForSplits(symbols, corporateActionsFromDB, skipLastAdjustmentChec
                     });
             });
         })
-        .then(Promise.all)
-        .finally(shutdown);
+        .then(Promise.all);
+}
+
+/**
+ * Adjust splits in batches for smaller memory footprint.
+ */
+function adjustForSplitsInBatches(symbols, corporateActionsFromDB, skipLastAdjustmentCheck) {
+
+    if(skipLastAdjustmentCheck === true) {
+        console.log('Skipping last adjustment check');
+    }
+
+    let promise = Promise.resolve();
+
+    const batchSize = 20;
+
+    for(let i = 0; i < symbols.length; i += batchSize) {
+        const to = i + batchSize;
+        const symbolsBatch = symbols.slice(i, to);
+
+        promise = promise
+            .then(() => {
+                console.log(`Running batch from ${i} to ${to}`);
+                return adjustForSplits(symbolsBatch, corporateActionsFromDB, skipLastAdjustmentCheck)
+            });
+    }
+
+    return promise;
 }
 
 function resetQuotes(symbols) {
@@ -106,6 +135,7 @@ const param = process.argv[3];
 const corporateActionsFromDB = process.argv.indexOf('--fromDB') > -1;
 const skipLastAdjustmentCheck = process.argv.indexOf('--skipLastAdjustmentCheck') > -1;
 
+
 if(!param || param.length === 0) {
     printHelpAndExit();
 }
@@ -119,14 +149,16 @@ switch(flag) {
         Promise.all(indices.map(_index => instrumentRepository.getIndexComponents(_index)))
             .then(_res => [].concat(..._res))
             .then(_components => [...new Set(_components.map(_component => _component.symbol))]) // unique symbols
-            .then(_symbols => adjustForSplits(_symbols, corporateActionsFromDB, skipLastAdjustmentCheck))
+            .then(_symbols => adjustForSplitsInBatches(_symbols, corporateActionsFromDB, skipLastAdjustmentCheck))
             .catch(e => console.error(e.message, e.stack))
-            .finally(shutdown);
+            .then(shutdown);
         break;
 
     case '--symbols':
         const symbols = param.split(',');
-        adjustForSplits(symbols, corporateActionsFromDB, skipLastAdjustmentCheck)
+        adjustForSplitsInBatches(symbols, corporateActionsFromDB, skipLastAdjustmentCheck)
+            .catch(e => console.error(e.message, e.stack))
+            .then(shutdown);
         break;
 
     default:
