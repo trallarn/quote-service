@@ -3,19 +3,14 @@
  * Run without args for flags.
  */
 
-var _ = require('underscore');
-var ArgumentParser = require('argparse').ArgumentParser;
+const _ = require('underscore');
+const ArgumentParser = require('argparse').ArgumentParser;
+const Promise = require('bluebird');
 
-var Promise = require('bluebird');
-var InstrumentRepository = require('../InstrumentRepository.js');
-var CorporateActionsRepository = require('../CorporateActionsRepository');
-var QuoteRepository = require('../QuoteRepository.js');
-var CorporateActionsService = require('../service/CorporateActionsService.js');
-var mongoFactory = require('../MongoFactory.js')({env: 'dev'});
-var instrumentRepository = require('../InstrumentRepository.js')(mongoFactory);
+const DI = require('../DI')({ env: 'dev' });
 
 function shutdown() {
-    mongoFactory.closeEquityDb();
+    DI.mongoFactory.closeEquityDb();
 }
 
 /**
@@ -111,15 +106,9 @@ function resetQuotes(symbols) {
         .finally(shutdown);
 }
 
-const corporateActionsRepository = new CorporateActionsRepository({
-    mongoFactory: mongoFactory
-});
-
-const corporateActionsService = new CorporateActionsService({
-    instrumentRepository: new InstrumentRepository(mongoFactory),
-    corporateActionsRepository: corporateActionsRepository,
-    quoteRepository: new QuoteRepository(mongoFactory),
-});
+const corporateActionsRepository = DI.corporateActionsRepository;
+const instrumentRepository = DI.instrumentRepository;
+const corporateActionsService = DI.corporateActionsService;
 
 var parser = new ArgumentParser({
   addHelp: true,
