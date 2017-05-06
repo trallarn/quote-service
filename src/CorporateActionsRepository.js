@@ -14,7 +14,7 @@ function CorporateActionsRepository(conf) {
     assert(conf.mongoFactory, 'mongofactory must be set');
     this.mongoFactory = conf.mongoFactory;
 
-    this.urlBase = 'http://ichart.finance.yahoo.com/x?s={symbol}&a={fromMonth}&b={fromDay}&c={fromYear}&d={toMonth}&e={toDay}&f={toYear}&g=v';
+    this.urlBase = 'https://ichart.finance.yahoo.com/x?s={symbol}&a={fromMonth}&b={fromDay}&c={fromYear}&d={toMonth}&e={toDay}&f={toYear}&g=v';
 }
 
 CorporateActionsRepository.prototype = {
