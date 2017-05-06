@@ -31,7 +31,7 @@ CorporateActionsRepository.prototype = {
                     .then(_actions => this.saveToDB(_actions))
                     .catch(e => {
                         console.error('error when getting corporate actions from API for symbol ' + symbol);
-                        console.error(e.message);
+                        console.error(e.message, e.stack);
                     })
             })
         );
@@ -120,6 +120,7 @@ CorporateActionsRepository.prototype = {
             comment: '#',
             auto_parse: true,
             auto_parse_date: true,
+            relax_column_count: true,
             columns: ['type', 'date','value']
         };
         
@@ -127,6 +128,7 @@ CorporateActionsRepository.prototype = {
             csv.parse(body, options, function(err, data) {
                 if(err) {
                     reject(err);
+                    return;
                 }
 
                 var eventsData = _.filter(data, function(el) {
