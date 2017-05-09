@@ -128,6 +128,7 @@ group.addArgument( [ '--symbols' ], {
 
 parser.addArgument( [ '--batchSize' ], { 
     help: 'size of batch', 
+    type: 'int',
     defaultValue: 100 
 });
 parser.addArgument( [ '--fromDB' ], { 
