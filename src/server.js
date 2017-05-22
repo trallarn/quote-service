@@ -188,11 +188,14 @@ app.get('/instruments/change/', function (req, res) {
 
 /**
  * Fetches daily quotes. 
+ * @path params:
+ *  period - <daily|weekly|monthly>
+ *  symbol - <symbol>
  * @query params: 
  *  refreshData - fetches and saves quotes from source
  * @return empty if quotes are missing
  */
-app.get('/daily/:symbol', function (req, res) {
+app.get('/:period/:symbol', function (req, res) {
     var symbol = req.params.symbol;
     var from = new Date(req.query.from || new Date(1900,1,1));
     var to = new Date(req.query.to || new Date());
@@ -202,7 +205,7 @@ app.get('/daily/:symbol', function (req, res) {
     console.log('got request params: ' + JSON.stringify(req.params) + ' query: ' + JSON.stringify(req.query));
 
     var getQuotesAndWrite = function() {
-        quoteRepository.getAsync(symbol, from, to)
+        quoteRepository.getAsync(symbol, from, to, { period: req.params.period })
             .then(function(quotes){
                 res.jsonp(quoteSerializer.mongoToHighstock(symbol, quotes, chartType));
             });

@@ -13,8 +13,10 @@ function QuoteRepository(mongoFactory, options) {
         options = options || {};
 
         // Possible to create test collections
-        this.collections = _.extend({
-            quotesDaily: 'quotesDaily'
+        this.collections = Object.assign({
+            quotesDaily: 'quotesDaily',
+            quotesWeekly: 'quotesWeekly',
+            quotesMonthly: 'quotesMonthly',
         }, options.collections);
 
         this.mongoFactory = mongoFactory;
@@ -68,13 +70,21 @@ QuoteRepository.prototype = {
 
     /**
      * Get adjusted daily quotes.
+     * @param options {
+     *  period: <daily|weekly|monthly> default daily
+     * }
      * @return promise
      */
-    getAsync: function(symbol, from, to, callback) {
-        if(callback) {
-            throw "Don't use callback!";
+    getAsync: function(symbol, from, to, options = { period: 'daily' }) {
+        const collectionKey = 'quotes' + options.period[0].toUpperCase() + options.period.slice(1);
+
+        const collection = this.collections[collectionKey];
+
+        if(!collection) {
+            throw Error('Invalid period. Supported: ' + this.collection.keys().map(el => el.replace('quotes')));
         }
-        return this._getQuotesAsync(symbol, from, to, this.collections.quotesDaily);
+
+        return this._getQuotesAsync(symbol, from, to, collection);
     },
 
     /**
