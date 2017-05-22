@@ -73,11 +73,13 @@ function QuoteFetcher () {
 
             console.log('Fetching historical for ' + symbols + ' from ' + from + ' to ' + to);
 
+debugger;
             return yahooFinance.historical({
                 symbols: symbols,
                 from: from,
                 to: to,
                 period: period,
+                error: true
                 }
             );
         },
