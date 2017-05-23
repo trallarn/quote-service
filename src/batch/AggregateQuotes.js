@@ -1,10 +1,12 @@
+/**
+ * Aggregates from quotesDaily collection to quotesWeekly and quotesMonthly collections.
+ */
+
 const ArgumentParser = require('argparse').ArgumentParser;
 
 const DI = require('../DI')({ env: 'dev' });
-const MongoPrinter = require('../mongo/MongoPrinter');
 
 function shutdown() {
-debugger;
     DI.mongoFactory.closeEquityDb();
 }
 
@@ -20,9 +22,9 @@ function aggregate(db) {
         symbol: {$first: "$symbol"},
         date: {$first: "$date" },
         close : {$last: "$close"}, 
-        open: {$first: "$close"}, 
-        high: {$max: "$close"}, 
-        low: {$min: "$close"} 
+        open: {$first: "$open"}, 
+        high: {$max: "$high"}, 
+        low: {$min: "$low"} 
     };
 
     const weekGroup = Object.assign({}, group, {
@@ -55,29 +57,9 @@ var parser = new ArgumentParser({
   description: 'Aggregates quotes weekly or monthly'
 });
 
-const group = parser.addMutuallyExclusiveGroup({ required: true });
-group.addArgument( [ '--weekly' ], { 
-    help: 'aggregate weekly',
-    action: 'storeTrue', 
-});
-group.addArgument( [ '--monthly' ], { 
-    help: 'aggregate monthly',
-    action: 'storeTrue', 
-});
+parser.parseArgs();
 
-parser.addArgument( [ '--symbols' ], { 
-    help: '<symbol,...,symbol>'
-});
-
-const args = parser.parseArgs();
-
-//const symbols = args.symbols.split(',');
-
-if(args.weekly) {
-    DI.mongoFactory.getEquityDb()
-        .then(aggregate)
-        .then(shutdown)
-        .catch(onError);
-} else if(args.monthly) {
-
-}
+DI.mongoFactory.getEquityDb()
+    .then(aggregate)
+    .then(shutdown)
+    .catch(onError);
