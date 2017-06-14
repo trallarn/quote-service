@@ -27,6 +27,10 @@ function aggregate(db) {
         low: {$min: "$low"} 
     };
 
+    const options = {
+        allowDiskUse: true
+    };
+
     const weekGroup = Object.assign({}, group, {
         _id: { symbol: "$symbol", year: { $year: "$date" }, week: { $week: "$date" } }
     });
@@ -40,13 +44,13 @@ function aggregate(db) {
         //{ $match: { symbol: { $type: 2 } } }, // Checks for string
         { $group: weekGroup },
         { $out: "quotesWeekly" }
-    ])
+    ], options)
     .toArray()
     .then(() => 
         db.collection('quotesWeekly').aggregate([ 
             { $group: monthGroup },
             { $out: "quotesMonthly" }
-        ]) 
+        ], options) 
         .toArray()
     );
 }
