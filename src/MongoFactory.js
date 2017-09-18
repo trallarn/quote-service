@@ -39,7 +39,12 @@ function connectToEquityDB (env, callback) {
     pendingConnection = true;
 
     // Use connect method to connect to the Server
-    return MongoClient.connect(environment.url)
+    return MongoClient.connect(environment.url, {
+        server : {
+            reconnectTries : 1000,
+            reconnectIntervals: 3000,
+            autoReconnect : true
+        }})
         .then(lDb => {
             console.log("Connected correctly to mongo db");
 
