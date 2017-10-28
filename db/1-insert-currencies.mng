@@ -1,7 +1,7 @@
 use equity;
 
-db.instruments.insert( { name: "USD/SEK", symbol: "SEK=X" } );
-db.instruments.insert( { name: "GBP/SEK", symbol: "GBPSEK=X" } );
-db.instruments.insert( { name: "USD/EUR", symbol: "EURUSD=X" } );
+db.instruments.update( { name: "USD/SEK", symbol: "USDSEK" }, { name: "USD/SEK", symbol: "USDSEK" }, { upsert: true } );
+db.instruments.update( { name: "EUR/SEK", symbol: "EURSEK" }, { name: "EUR/SEK", symbol: "EURSEK" }, { upsert: true }  );
+db.instruments.update( { name: "EUR/USD", symbol: "EURUSD" }, { name: "EUR/USD", symbol: "EURUSD" }, { upsert: true }  );
 
-db.indices.update({ name: "Currencies" }, { $set: { name: "Currencies", symbols: [ "SEK=X","GBPSEK=X", "EURUSD=X" ] } }, { upsert: true } );
+db.indices.update({ name: "Currencies" }, { $set: { name: "Currencies", symbols: [ "USDSEK","EURSEK", "EURUSD" ] } }, { upsert: true } );
