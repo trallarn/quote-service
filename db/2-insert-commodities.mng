@@ -1,0 +1,13 @@
+use equity;
+
+db.instruments.update( { name: "Gold", symbol: "GOLD" }, { name: "Gold", symbol: "GOLD" }, { upsert: true } );
+db.instruments.remove( { name: "Silver", symbol: "SI=F" },  );
+db.instruments.remove( { name: "Platinum", symbol: "PL=F" } );
+db.instruments.remove( { name: "Copper", symbol: "HG=F" } );
+db.instruments.remove( { name: "Paladium", symbol: "PA=F" } );
+db.instruments.remove( { name: "Cocoa", symbol: "CC=F" } );
+db.instruments.remove( { name: "Coffe", symbol: "KF=F" } );
+db.instruments.remove( { name: "Cotton", symbol: "CT=F" } );
+db.instruments.remove( { name: "Sugar", symbol: "SB=F" } );
+
+db.indices.update( { name: "Commodities" }, { name: "Commodities", symbols: ["GOLD"] }, { upsert: true } );
